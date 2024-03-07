@@ -1,0 +1,28 @@
+
+classifiers=[
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering",
+    "Development Status :: 4 - Beta",
+]
+
+
+[tool.poetry]
+name = "multimodalexplorer"
+version = "0.1.0"
+description = "an embedding space explorer"
+authors = ["Facebook AI Research"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fairseq2 = "^0.2.0"
+sonar-space = "^0.2.1"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.27.1"}
+pydantic = "^2.6.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
