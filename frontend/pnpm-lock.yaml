@@ -11,6 +11,9 @@ dependencies:
   react-dom:
     specifier: ^18.2.0
     version: 18.2.0(react@18.2.0)
+  regl-scatterplot:
+    specifier: ^1.8.5
+    version: 1.8.5(pub-sub-es@2.0.2)(regl@2.1.0)
 
 devDependencies:
   '@types/react':
@@ -535,6 +538,10 @@ packages:
     resolution: {integrity: sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
+
+  /@flekschas/utils@0.31.0:
+    resolution: {integrity: sha512-ejl+9LrhyTbKjokbTHFqlwBZjqMBttD3R4M5t6p6sKcLRBKVn4gDporO76b/yIGQ0esN90G6/+uGNgjpf/AzXA==}
+    dev: false
 
   /@humanwhocodes/config-array@0.11.14:
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -1088,6 +1095,14 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
+  /camera-2d-simple@3.0.0(gl-matrix@3.4.3):
+    resolution: {integrity: sha512-hBeuUeerQ2Repi/61PGyFkuJ9jt6IKAny7pjQo2w8/8uZh+RKvNLZQy4xbQeDH8FrlnFxAJDjyM4/yuLdOV5vQ==}
+    peerDependencies:
+      gl-matrix: ~3.3.0
+    dependencies:
+      gl-matrix: 3.4.3
+    dev: false
+
   /caniuse-lite@1.0.30001597:
     resolution: {integrity: sha512-7LjJvmQU6Sj7bL0j5b5WY/3n7utXUJvAe1lxhsHDbLmwX9mdL86Yjtr+5SRCyf8qME4M7pU2hswj0FpyBVCv9w==}
     dev: true
@@ -1238,6 +1253,15 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /dom-2d-camera@2.2.5(gl-matrix@3.4.3):
+    resolution: {integrity: sha512-BmjIiinZsvllot3E7HGsQRS4rfDfmsJK8urFL7po3Sx5r8ZrWvEcHxYxeUqxjEIGqp1Re5qRGTUx3pAACI3mjg==}
+    peerDependencies:
+      gl-matrix: ^3.3.0
+    dependencies:
+      camera-2d-simple: 3.0.0(gl-matrix@3.4.3)
+      gl-matrix: 3.4.3
+    dev: false
 
   /eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -1512,6 +1536,10 @@ packages:
     engines: {node: '>=6.9.0'}
     dev: true
 
+  /gl-matrix@3.4.3:
+    resolution: {integrity: sha512-wcCp8vu8FT22BnvKVPjXa/ICBWRq/zjFfdofZy1WSpQZpphblv12/bOQLBC1rMM7SGOFS9ltVmKOHil5+Ml7gA==}
+    dev: false
+
   /glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -1715,6 +1743,10 @@ packages:
     hasBin: true
     dev: true
 
+  /kdbush@3.0.0:
+    resolution: {integrity: sha512-hRkd6/XW4HTsA9vjVpY9tuXJYLSlelnkTmVFu4M9/7MIYQtFcHpbugAU7UbOfjOiVSVYl2fqgBuJ32JUmRo5Ew==}
+    dev: false
+
   /keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
     dependencies:
@@ -1749,6 +1781,10 @@ packages:
     dependencies:
       p-locate: 5.0.0
     dev: true
+
+  /lodash-es@4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+    dev: false
 
   /lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
@@ -2021,6 +2057,10 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
+  /pub-sub-es@2.0.2:
+    resolution: {integrity: sha512-CQqZaKOGF6tWb+6XUGJNMHFZ308ZrgjNXTR4einx265b/L/yYKNEpcD7PkYLNq3CBV0K3qyIXSbX2Jg63ra9sw==}
+    dev: false
+
   /punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -2064,6 +2104,36 @@ packages:
     dependencies:
       picomatch: 2.3.1
     dev: true
+
+  /regl-line@1.0.0(regl@2.1.0):
+    resolution: {integrity: sha512-AkLBm/XbJl1a6EBSd18o33teVjtHFMSGQLY8EnpvcG+OcBRBEc/OHPbmJGJruLXrtTypvuqoCSfG5fPzN7zSVw==}
+    peerDependencies:
+      regl: ^2.1.0
+    dependencies:
+      gl-matrix: 3.4.3
+      regl: 2.1.0
+    dev: false
+
+  /regl-scatterplot@1.8.5(pub-sub-es@2.0.2)(regl@2.1.0):
+    resolution: {integrity: sha512-j748UQ11+4BfLa2WvoVlfOQuGF6dyfdq1ZmTqhAQ9FzZCIGCROmXBn+zrK2r5ksOUGH0iCvnYYIkRNAIJXolWg==}
+    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
+    peerDependencies:
+      pub-sub-es: ~2.0.2
+      regl: ~2.1.0
+    dependencies:
+      '@flekschas/utils': 0.31.0
+      dom-2d-camera: 2.2.5(gl-matrix@3.4.3)
+      gl-matrix: 3.4.3
+      kdbush: 3.0.0
+      lodash-es: 4.17.21
+      pub-sub-es: 2.0.2
+      regl: 2.1.0
+      regl-line: 1.0.0(regl@2.1.0)
+    dev: false
+
+  /regl@2.1.0:
+    resolution: {integrity: sha512-oWUce/aVoEvW5l2V0LK7O5KJMzUSKeiOwFuJehzpSFd43dO5spP9r+sSUfhKtsky4u6MCqWJaRL+abzExynfTg==}
+    dev: false
 
   /resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
