@@ -1,14 +1,27 @@
-export const getEmbeddingPoints = async (): Promise<[number, number][]> => {
+import axios from "axios";
+
+const BASE_URL = "http://127.0.0.1:8000/api";
+
+export const getEmbeddingPoints = async (): Promise<
+  Array<[number, number, number]>
+> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/embeddings`);
+    return response?.data?.data || [];
+  } catch (error) {
+    return [];
+  }
+};
+
+export const getEmbeddingPointDetails = async (
+  point: number[]
+): Promise<{ id: number }> => {
   return new Promise((resolve, reject) => {
     try {
       setTimeout(() => {
-        const embeddings: [number, number][] = new Array(10000)
-          .fill(null)
-          .map(() => [-1 + Math.random() * 2, -1 + Math.random() * 2]);
-        resolve(embeddings);
-      }, 5000);
+        resolve({ id: point[0] });
+      }, 2000);
     } catch (error) {
-      console.log(error);
       reject(error);
     }
   });

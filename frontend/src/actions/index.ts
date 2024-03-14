@@ -1,1 +1,1 @@
-export { getEmbeddingPoints } from "./api/embedding";
+export { getEmbeddingPoints, getEmbeddingPointDetails } from "./api/embedding";
