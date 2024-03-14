@@ -1,30 +1,67 @@
-# React + TypeScript + Vite
+# MultiModalExplorer, a tool to explore embedding spaces
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a project aimed at creating a multimodal embedding visualizer using React, TypeScript, and Vite. It provides a user interface to visualize embeddings generated from multiple modalities such as text, images, videos and audio.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Visualize embeddings from different modalities.
+- Interactively explore similarities and relationships between embeddings.
+- Easy-to-use interface for comparing and analyzing multimodal embeddings.
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- React
+- TypeScript
+- Vite
+- TailwindCSS
 
-- Configure the top-level `parserOptions` property like this:
+## Getting Started
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+To run the frontend of the MultiModalExplorer, follow these steps:
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Prerequisites
+
+- Make sure you have Node.js and pnpm installed on your system.
+- Backend server running. Follow the instructions [here](/backend/README.md) to set it up.
+
+## Installation
+
+1. Clone this repository to your local machine:
+
+   `git clone https://github.com/facebookresearch/MultiModalExplorer.git`
+
+2. Navigate to the project directory:
+
+   `cd MultiModalExplorer/frontend`
+
+3. Install dependencies:
+
+   `pnpm install or pnpm i`
+
+## Running the Frontend
+
+Start the development server:
+
+`pnpm dev`
+
+This will start the frontend server at `http://localhost:5173/`
+
+## Running the Backend
+
+Before you can fully utilize the visualizer, you need to ensure the backend server is running. Please follow the instructions provided in the backend repository [here](/backend/README.md).
+
+## Building for Production
+
+To build the frontend for production, run:
+
+`pnpm build`
+
+This will create a production-ready build of the frontend in the `build` directory.
+
+## Contributing
+
+See the [CONTRIBUTING](/CONTRIBUTING.md) file for how to help out.
+
+## License
+
+MultiModalExplorer is MIT licensed, as found in the [LICENSE](/LICENSE) file.

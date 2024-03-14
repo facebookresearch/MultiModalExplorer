@@ -16,6 +16,9 @@ export const getEmbeddingPoints = async (): Promise<
 export const getEmbeddingPointDetails = async (
   point: number[]
 ): Promise<{ id: number }> => {
+  // This is currently a mock to simulate behavior for testing purposes.
+  // TODO: Replace this mock with the real implementation once it's available.
+
   return new Promise((resolve, reject) => {
     try {
       setTimeout(() => {
