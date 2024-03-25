@@ -1,3 +1,7 @@
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
+
 export default function Footer() {
   return (
     <div className="absolute bottom-2 left-2 flex flex-row z-[998]">

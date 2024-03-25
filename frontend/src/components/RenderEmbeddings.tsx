@@ -1,15 +1,18 @@
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
+
 /* eslint-disable react-hooks/exhaustive-deps */
+
 import React, { useEffect, useRef, useCallback } from "react";
 import createScatterplot from "regl-scatterplot";
 import { scaleLinear } from "d3-scale";
 
-import { Loader } from ".";
-
 interface RenderEmbeddingsProps {
   pointSize?: number;
   embeddings: Array<[number, number, number]>;
-  handlePointClicked?: (detail: number[]) => Promise<void>;
-  handlePointUnclicked?: () => void;
+  handleEmdeddingSelect?: (detail: number[]) => Promise<void>;
+  handleEmdeddingUnselect?: () => void;
 }
 
 const maxPointLabels = 50;
@@ -28,18 +31,18 @@ const pointColor = [
 const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = ({
   pointSize = 1,
   embeddings,
-  handlePointClicked,
-  handlePointUnclicked,
+  handleEmdeddingSelect,
+  handleEmdeddingUnselect,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textOverlayRef = useRef<HTMLCanvasElement>(null);
 
   const handleSelect = useCallback(({ points }: { points: number[] }) => {
-    if (handlePointClicked) handlePointClicked(points);
+    if (handleEmdeddingSelect) handleEmdeddingSelect(points);
   }, []);
 
   const handleDeselect = () => {
-    if (handlePointUnclicked) handlePointUnclicked();
+    if (handleEmdeddingUnselect) handleEmdeddingUnselect();
   };
 
   useEffect(() => {
@@ -140,21 +143,13 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = ({
   }, [embeddings]);
 
   return (
-    <>
-      {embeddings.length ? (
-        <div className="w-screen h-screen pb-4">
-          <canvas ref={canvasRef} className="!w-full !h-full" />
-          <canvas
-            ref={textOverlayRef}
-            className="!w-full !h-full absolute top-0 right-0 pointer-events-none"
-          />
-        </div>
-      ) : (
-        <div className="w-screen h-screen flex justify-center items-center">
-          <Loader />
-        </div>
-      )}
-    </>
+    <div className="w-screen h-screen pb-4">
+      <canvas ref={canvasRef} className="!w-full !h-full" />
+      <canvas
+        ref={textOverlayRef}
+        className="!w-full !h-full absolute top-0 right-0 pointer-events-none"
+      />
+    </div>
   );
 };
 

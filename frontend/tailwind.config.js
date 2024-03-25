@@ -1,3 +1,7 @@
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
+
 /** @type {import('tailwindcss').Config} */
 import daisyui from "daisyui";
 

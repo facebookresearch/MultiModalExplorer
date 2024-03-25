@@ -1,5 +1,8 @@
-import { Loader } from ".";
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
 
+import Loader from "./Loader";
 interface EmbeddingDetailsProps {
   embeddingPoint?: number[] | null;
   embeddingDetails?: { id: number } | null;

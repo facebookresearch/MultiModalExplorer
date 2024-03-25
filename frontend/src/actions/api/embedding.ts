@@ -1,3 +1,7 @@
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
+
 import axios from "axios";
 
 const BASE_URL = "http://127.0.0.1:8000/api";
@@ -9,7 +13,7 @@ export const getEmbeddingPoints = async (): Promise<
     const response = await axios.get(`${BASE_URL}/embeddings`);
     return response?.data?.data || [];
   } catch (error) {
-    return [];
+    throw new Error(error as string);
   }
 };
 
