@@ -1,0 +1,41 @@
+name: lint_and_tests
+
+on:
+  # Trigger the workflow on push to master or any pull request
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      max-parallel: 1
+      matrix:
+        platform: [ubuntu-latest]
+        python-version: [3.8]
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install
+        run: |
+          python --version
+          python -m pip install --upgrade 'pip>=22.1.2'
+          python -m pip show pip
+          python -m pip install pytest black isort
+
+      - name: isort
+        run: isort --check --diff .
+      - name: black
+        run: black --check --diff .
+      - name: pytest
+        run: pytest
