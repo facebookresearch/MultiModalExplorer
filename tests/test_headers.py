@@ -4,19 +4,25 @@ from pathlib import Path
 COPYRIGHT = "Copyright (c) Meta Platforms, Inc. and affiliates"
 FB_COPYRIGHT = "Copyright (c) Facebook, Inc. and its affiliates"
 
-PY_HEADER = """# Copyright (c) Meta Platforms, Inc. and affiliates
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
+PY_HEADER = """# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+# This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
 """
 
-DOUBLE_SLASH_COMMENT_HEADER = """// Copyright (c) Meta Platforms, Inc. and affiliates
-// All rights reserved.
+DOUBLE_SLASH_COMMENT_HEADER = """// Copyright (c) Meta Platforms, Inc. and affiliates.
 //
-// This source code is licensed under the license found in the
+// This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
+
+"""
+
+CSS_COMMENT_HEADER = """/* Copyright (c) Meta Platforms, Inc. and affiliates.
+* 
+* This source code is licensed under the MIT license found in the
+* LICENSE file in the root directory of this source tree.
+*/
 
 """
 
@@ -38,9 +44,13 @@ def check_file(file: Path, autofix: bool = False) -> bool:
         file.write_text(PY_HEADER + full_text)
         return True
 
-    double_slash_comment_header_suffixes = {".ts", ".tsx", ".js", ".jsx", ".css"}
+    double_slash_comment_header_suffixes = {".ts", ".tsx", ".js", ".jsx"}
     if file.suffix in double_slash_comment_header_suffixes:
         file.write_text(DOUBLE_SLASH_COMMENT_HEADER + full_text)
+        return True
+
+    if file.suffix in {".css"}:
+        file.write_text(CSS_COMMENT_HEADER + full_text)
         return True
 
     return False
@@ -48,7 +58,7 @@ def check_file(file: Path, autofix: bool = False) -> bool:
 
 def test_all_files_have_a_copyright_header(autofix: bool = False):
     root = Path(__file__).resolve().parents[1]
-    assert (root / ".git").is_dir(), f"{root} is not a directory"
+    assert (root / ".git").is_dir(), f"{root} is not a git directory"
     ls_tree = subprocess.check_output(
         ["git", "ls-tree", "-r", "HEAD", "--name-only"],
         encoding="utf-8",
