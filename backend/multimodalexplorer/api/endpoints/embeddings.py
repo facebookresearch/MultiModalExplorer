@@ -1,15 +1,17 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
-from fastapi import APIRouter
 import random
 
+from fastapi import APIRouter
+
 router = APIRouter()
+
 
 @router.get("/embeddings")
 async def read_example():
     batch_size = 700
     num_batches = 100
-    
+
     embeddings = []
     for _ in range(num_batches):
         batch = [
@@ -21,5 +23,5 @@ async def read_example():
             for _ in range(batch_size)
         ]
         embeddings.extend(batch)
-    
+
     return {"data": embeddings}

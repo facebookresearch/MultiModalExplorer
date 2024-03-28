@@ -17,15 +17,16 @@ allowed_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, 
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to MultiModalExplorer."}
 
-app.include_router(create_router())
 
+app.include_router(create_router())
