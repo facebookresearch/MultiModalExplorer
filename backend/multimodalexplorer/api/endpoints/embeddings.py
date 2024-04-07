@@ -1,14 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
 import random
-
 from fastapi import APIRouter
 
 router = APIRouter()
 
 
 @router.get("/embeddings")
-async def read_example():
+async def get_embeddings():
     batch_size = 700
     num_batches = 100
 
