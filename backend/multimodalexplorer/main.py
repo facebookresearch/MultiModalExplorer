@@ -11,7 +11,6 @@ from .functions.create_faiss_index import process_data
 app = FastAPI()
 
 # Configure CORS
-
 allowed_origins = [
     "http://localhost:5173",
 ]
@@ -24,10 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# @app.get("/")
-# async def root():
-#     return {"message": "Welcome to MultiModalExplorer."}
+@app.get("/")
+async def root():
+    return {"message": "Welcome to MultiModalExplorer."}
 
 def main():
     process_data()
