@@ -1,14 +1,14 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
 import torch
-import pandas as pd
+import faiss
 import numpy as np
 from datasets import load_dataset
 from umap import UMAP
 from imagebind import data as imagebind_data
 from imagebind.models import imagebind_model
 
-from .helpers import save_data_as_file
+from .helpers import save_data_as_file, index_to_gpu
 
 # Determine the device (CPU or GPU) for torch operations
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -99,8 +99,37 @@ def reduce_dims_with_umap(embeddings, all_datasets):
     # Save concatenated dataset
     save_data_as_file(concatenated_dataset, 'umap_embedding')  
 
+def create_faiss_index(embeddings):
+    vector_dims = embeddings.shape[1]
+
+    # Creating an index with OPQ preprocessing, IVF quantization, and PQ compression
+    index = faiss.index_factory(vector_dims, "OPQ64,IVF1024,PQ64")
+
+    # Checking if GPU is available and moving index to GPU if specified
+    if DEVICE == 'gpu':
+      index = index_to_gpu(index, faiss)
+
+    # Converting embeddings to numpy array and ensuring data type consistency
+    if DEVICE == 'gpu':
+      data = embeddings.detach().cpu().numpy().astype(np.float32)  # Converting embeddings to CPU for GPU processing
+    else:
+      data = embeddings.numpy().astype(np.float32)
+
+    # Normalizing data
+    faiss.normalize_L2(data)
+
+    # Training index
+    index.train(data)
+
+    # Adding data to index
+    index.add(data)
+
+    # Saving index to file
+    save_data_as_file(index, 'faiss_index_embedding')
 
 def process_data():
     [embeddings, all_datasets] = generate_embedding()
   
     reduce_dims_with_umap(embeddings, all_datasets)
+
+    create_faiss_index()

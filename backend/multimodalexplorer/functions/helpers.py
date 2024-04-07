@@ -10,3 +10,9 @@ def save_data_as_file(data, file_name, folder="../db"):
 
     df = pd.DataFrame(data)
     df.to_csv(csv_path, sep='\t', index=False)
+
+def index_to_gpu(index, faiss):
+    co = faiss.GpuMultipleClonerOptions()
+    co.useFloat16 = True
+    index = faiss.index_cpu_to_all_gpus(index, co=co)
+    return index
