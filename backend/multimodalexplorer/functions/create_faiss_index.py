@@ -1,7 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
 import torch
+import pandas as pd
+import numpy as np
 from datasets import load_dataset
+from umap import UMAP
 from imagebind import data as imagebind_data
 from imagebind.models import imagebind_model
 
@@ -70,5 +73,34 @@ def generate_embedding():
 
     return [combined_tensor, all_datasets]
 
+def reduce_dims_with_umap(embeddings, all_datasets):
+    """
+    Reduces dimensions of embeddings using UMAP and concatenates them with respective data and media types.
+    
+    Args:
+        embeddings (numpy.ndarray): Embeddings to be reduced in dimensions.
+        all_datasets (dict): Dictionary containing all datasets.
+        
+    Returns:
+        None
+    """
+
+    # Create UMAP object to reduce dataset dims
+    umap = UMAP(n_neighbors=5, n_components=2)  
+    embeddings_umap = umap.fit_transform(embeddings)
+
+    # Creating concatenated dataset
+    concatenated_dataset = [
+        {'data': data, 'media_type': data_type, 'embedding': embedding}
+        for data_type, dataset in all_datasets.items()
+        for data, embedding in zip(dataset, embeddings_umap)
+    ]
+
+    # Save concatenated dataset
+    save_data_as_file(concatenated_dataset, 'umap_embedding')  
+
+
 def process_data():
     [embeddings, all_datasets] = generate_embedding()
+  
+    reduce_dims_with_umap(embeddings, all_datasets)
