@@ -6,6 +6,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from multimodalexplorer.api.endpoints import create_router
+
 from .functions.create_faiss_index import process_data
 
 app = FastAPI()

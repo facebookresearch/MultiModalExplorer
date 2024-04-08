@@ -1,14 +1,14 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
-import torch
 import faiss
 import numpy as np
+import torch
 from datasets import load_dataset
-from umap import UMAP
 from imagebind import data as imagebind_data
 from imagebind.models import imagebind_model
+from umap import UMAP
 
-from .helpers import save_data_as_file, index_to_gpu
+from .helpers import index_to_gpu, save_data_as_file
 
 # Determine the device (CPU or GPU) for torch operations
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

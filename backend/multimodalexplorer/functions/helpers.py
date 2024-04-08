@@ -1,7 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
 import os
+
 import pandas as pd
+
 
 def save_data_as_file(data, file_name, folder="../db"):
     folder_path = os.path.join(os.path.dirname(__file__), folder)

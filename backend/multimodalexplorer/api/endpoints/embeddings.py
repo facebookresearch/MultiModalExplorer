@@ -1,10 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
 import random
+
 from fastapi import APIRouter
 
 router = APIRouter()
-
 
 @router.get("/embeddings")
 async def get_embeddings():
