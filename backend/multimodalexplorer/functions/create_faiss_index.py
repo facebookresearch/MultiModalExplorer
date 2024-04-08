@@ -20,13 +20,10 @@ model.to(DEVICE)
 
 # Dictionary storing data loader functions based on modality
 MODALITY_KEYS = {
-    "text": {
-        "data_loader_function": imagebind_data.load_and_transform_text
-    },
-    "image": {
-        "data_loader_function": imagebind_data.load_and_transform_vision_data
-    }
+    "text": {"data_loader_function": imagebind_data.load_and_transform_text},
+    "image": {"data_loader_function": imagebind_data.load_and_transform_vision_data},
 }
+
 
 def load_datasets():
     # Load dataset from huggingface dataset
@@ -40,13 +37,14 @@ def load_datasets():
 
     return dataset
 
+
 def generate_embedding():
     # Load text dataset
     text_dataset = load_datasets()
 
     # Dictionary containing all datasets
     all_datasets = {
-        'text': text_dataset,
+        "text": text_dataset,
     }
 
     # Dictionary to hold input data for the model
@@ -54,7 +52,7 @@ def generate_embedding():
 
     # Load data for each modality using corresponding data loader function
     for key, val in all_datasets.items():
-        dataset_input[key] = MODALITY_KEYS[key]['data_loader_function'](val, DEVICE)
+        dataset_input[key] = MODALITY_KEYS[key]["data_loader_function"](val, DEVICE)
 
     # Compute embeddings for each modality
     with torch.no_grad():
@@ -69,35 +67,40 @@ def generate_embedding():
     combined_tensor = torch.cat(concatenated_tensors, dim=0)
 
     # Save combined tensor embedding as a file
-    save_data_as_file(combined_tensor, 'combined_tensor_embedding')
+    save_data_as_file(combined_tensor, "combined_tensor_embedding")
 
     return [combined_tensor, all_datasets]
+
 
 def reduce_dims_with_umap(embeddings, all_datasets):
     """
     Reduces dimensions of embeddings using UMAP and concatenates them with respective data and media types.
-    
+
     Args:
         embeddings (numpy.ndarray): Embeddings to be reduced in dimensions.
         all_datasets (dict): Dictionary containing all datasets.
-        
+
+
     Returns:
         None
     """
 
     # Create UMAP object to reduce dataset dims
-    umap = UMAP(n_neighbors=5, n_components=2)  
+
+    umap = UMAP(n_neighbors=5, n_components=2)
     embeddings_umap = umap.fit_transform(embeddings)
 
     # Creating concatenated dataset
     concatenated_dataset = [
-        {'data': data, 'media_type': data_type, 'embedding': embedding}
+        {"data": data, "media_type": data_type, "embedding": embedding}
         for data_type, dataset in all_datasets.items()
         for data, embedding in zip(dataset, embeddings_umap)
     ]
 
     # Save concatenated dataset
-    save_data_as_file(concatenated_dataset, 'umap_embedding')  
+
+    save_data_as_file(concatenated_dataset, "umap_embedding")
+
 
 def create_faiss_index(embeddings):
     vector_dims = embeddings.shape[1]
@@ -106,14 +109,16 @@ def create_faiss_index(embeddings):
     index = faiss.index_factory(vector_dims, "OPQ64,IVF1024,PQ64")
 
     # Checking if GPU is available and moving index to GPU if specified
-    if DEVICE == 'gpu':
-      index = index_to_gpu(index, faiss)
+    if DEVICE == "gpu":
+        index = index_to_gpu(index, faiss)
 
     # Converting embeddings to numpy array and ensuring data type consistency
-    if DEVICE == 'gpu':
-      data = embeddings.detach().cpu().numpy().astype(np.float32)  # Converting embeddings to CPU for GPU processing
+    if DEVICE == "gpu":
+        data = (
+            embeddings.detach().cpu().numpy().astype(np.float32)
+        )  # Converting embeddings to CPU for GPU processing
     else:
-      data = embeddings.numpy().astype(np.float32)
+        data = embeddings.numpy().astype(np.float32)
 
     # Normalizing data
     faiss.normalize_L2(data)
@@ -125,11 +130,13 @@ def create_faiss_index(embeddings):
     index.add(data)
 
     # Saving index to file
-    save_data_as_file(index, 'faiss_index_embedding')
+
+    save_data_as_file(index, "faiss_index_embedding")
+
 
 def process_data():
     [embeddings, all_datasets] = generate_embedding()
-  
+
     reduce_dims_with_umap(embeddings, all_datasets)
 
     create_faiss_index()

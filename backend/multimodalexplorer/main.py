@@ -24,14 +24,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to MultiModalExplorer."}
 
+
 def main():
     process_data()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
     print("FAISS index created")
 

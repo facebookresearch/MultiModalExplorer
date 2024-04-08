@@ -11,7 +11,9 @@ def save_data_as_file(data, file_name, folder="../db"):
     csv_path = os.path.join(folder_path, f"{file_name}.tsv")
 
     df = pd.DataFrame(data)
-    df.to_csv(csv_path, sep='\t', index=False)
+
+    df.to_csv(csv_path, sep="\t", index=False)
+
 
 def index_to_gpu(index, faiss):
     co = faiss.GpuMultipleClonerOptions()

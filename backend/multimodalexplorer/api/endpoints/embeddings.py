@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
+
 @router.get("/embeddings")
 async def get_embeddings():
     batch_size = 700
