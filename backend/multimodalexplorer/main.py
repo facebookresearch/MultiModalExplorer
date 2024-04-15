@@ -7,8 +7,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from multimodalexplorer.api.endpoints import create_router
 
-from .functions.create_faiss_index import process_data
-
 app = FastAPI()
 
 # Configure CORS
@@ -29,13 +27,5 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to MultiModalExplorer."}
 
-
-def main():
-    process_data()
-
-
-if __name__ == "__main__":
-    main()
-    print("FAISS index created")
 
 app.include_router(create_router())
