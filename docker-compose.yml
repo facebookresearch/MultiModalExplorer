@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile.api
     ports:
       - "8000:8000"
@@ -10,7 +10,7 @@ services:
 
   ui:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile.ui
     ports:
       - "5173:5173"
