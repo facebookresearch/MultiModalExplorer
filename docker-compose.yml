@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build:
@@ -8,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - .:/backend/app
 
   ui:
     build:
@@ -17,4 +15,4 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - .:/app
+      - .:/frontend/app

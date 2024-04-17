@@ -1,10 +1,26 @@
-FROM node:14-alpine
+# Use the official Node.js 20 image
+FROM node:20-alpine
 
+# Set the working directory in the container
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+# Copy the dependencies file to the working directory
+COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
 
-COPY . .
+# Install pnpm
+RUN npm install -g pnpm
 
-CMD ["pnpm", "dev"]
+# Install all dependencies
+RUN pnpm install
+
+# Copy the rest of the application
+COPY ./frontend .
+
+# Build the TypeScript code
+RUN pnpm run build
+
+# Expose the port the app runs on
+EXPOSE 5173
+
+# Run the frontend
+CMD ["pnpm", "dev", "--host"]
