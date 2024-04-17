@@ -1,4 +1,6 @@
 services:
+  # TODO: Add the Dockerfile for the FAISS Index service
+
   api:
     build:
       context: ./backend

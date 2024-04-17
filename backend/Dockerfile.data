@@ -1,0 +1,7 @@
+# Use CUDA base image
+FROM nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu20.04
+
+# Set the working directory
+WORKDIR /app
+
+# TODO: Finish implementation for the FAISS Index service
