@@ -28,4 +28,4 @@ RUN pnpm run build
 EXPOSE 5173
 
 # Run the frontend
-CMD ["pnpm", "dev"]
+CMD ["pnpm", "dev", "--host"]
