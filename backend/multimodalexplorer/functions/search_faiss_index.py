@@ -9,7 +9,6 @@ import os
 import faiss
 import numpy as np
 import pandas as pd
-
 from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
 from multimodalexplorer.utils.utils import load_config, load_model, parse_arguments

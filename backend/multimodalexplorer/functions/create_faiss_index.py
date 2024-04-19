@@ -9,7 +9,6 @@ import logging
 import faiss
 import numpy as np
 import torch
-
 from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
 from multimodalexplorer.utils.utils import (
@@ -92,35 +91,12 @@ class CreateFaissIndex:
         faiss.write_index(index, str(file_path))
         logger.info(f"Created Faiss index for embeddings - {index.ntotal}")
 
-    def _create_index_2(self):
-        """
-        Create Faiss index using FlatL2 method.
-        """
-
-        embeddings = concat_embed_from_dir(self.embed_file["dir"])
-        vector_dims = embeddings.shape[1]
-
-        index = faiss.IndexFlatL2(vector_dims)
-
-        data = embeddings.numpy().astype(np.float32)
-        faiss.normalize_L2(data)
-
-        index.add(embeddings)
-        logger.info("Adding data to index")
-
-        # Get file path for saving the index
-        dir_path, ext = self.index_file.values()
-        file_path = get_file_path(dir_path, ext)
-
-        faiss.write_index(index, str(file_path))
-        logger.info(f"Created Faiss index for embeddings - {index.ntotal}")
-
     def process(self):
         """
         Process method to create Faiss index with error handling.
         """
         try:
-            self._create_index_2()
+            self._create_index()
         except Exception as e:
             logger.exception("Could not create faiss index", exc_info=e)
             return None
