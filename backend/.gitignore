@@ -153,10 +153,7 @@ dmypy.json
 cython_debug/
 
 # Custom generated folder from running functions scripts
-umap_embeddings/
-embeddings/
-db/
-data/
+artifact/
 .checkpoints/
 
 # PyCharm

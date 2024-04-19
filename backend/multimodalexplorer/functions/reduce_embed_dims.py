@@ -3,12 +3,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import logging
-import pickle
 
+import logging
+from typing import Any, Dict, Optional
+
+import numpy as np
 from umap import UMAP
 
-from .helpers import get_file_path, load_embeddings_from_files
+from multimodalexplorer.types.data_types import DataFileType
+from multimodalexplorer.utils.helpers import get_file_path
+from multimodalexplorer.utils.utils import (
+    concat_embed_from_dir,
+    load_config,
+    parse_arguments,
+)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -16,45 +24,39 @@ logger = logging.getLogger(__name__)
 
 
 class ReduceEmbedDims:
-    def __init__(self, umap_dirname="umap_embeddings", embedding_dirname="embeddings"):
-        self.umap_dirname = umap_dirname
-        self.embedding_dirname = embedding_dirname
-
-    def _get_emb_path(self):
+    def __init__(
+        self,
+        embed_file: DataFileType,
+        umap_file: DataFileType,
+        umap_args: Dict[str, Any],
+    ):
         """
-        Get the file path for storing UMAP embeddings.
+        Initialize the ReduceEmbedDims class.
+
+        Args:
+            embed_file (DataFileType): A dictionary containing the directory and extension for the embeddings file.
+            umap_file (DataFileType): A dictionary containing the directory and extension for the UMAP embeddings file.
+            umap_args (Dict[str, Any]): A dictionary containing the arguments for the UMAP model.
         """
-        file_name = f"{self.umap_dirname}.pickle"
-        file_path = get_file_path(file_name, f"../{self.umap_dirname}")
-        return file_path
+        self.embed_file = embed_file
+        self.umap_file = umap_file
+        self.umap_args = umap_args
 
-    def _reduce_dims(self):
-        """
-        Reduce the dimensions of embeddings using UMAP.
-        """
-        embeddings = load_embeddings_from_files(self.embedding_dirname)
-
-        # Create UMAP object to reduce dataset dimensions
-        umap_model = UMAP(n_neighbors=15, n_components=2, min_dist=0.1)
-        embeddings_umap = umap_model.fit_transform(embeddings)
-
-        file_path = self._get_emb_path()
-
-        with open(file_path, "wb") as file:
-            pickle.dump(embeddings_umap, file)
-        logger.info(f"Created UMAP embeddings for {len(embeddings_umap)} samples.")
-
-    def load_embeddings(self):
+    def load_embeddings(self) -> Optional[np.ndarray]:
         """
         Load UMAP embeddings from the stored file.
+
+        Returns:
+            np.ndarray or None: The loaded UMAP embeddings or None if an error occurred.
         """
-        file_path = self._get_emb_path()
+        dir_path, ext = self.umap_file.values()
+        file_path = get_file_path(dir_path, ext)
 
         try:
             with open(file_path, "rb") as file:
-                embeddings = pickle.load(file)
-                logger.info(f"Loaded UMAP embeddings with shape: {embeddings.shape}")
-                return embeddings
+                embeddings = np.load(file)
+            logger.info(f"Loaded UMAP embeddings with shape: {embeddings.shape}")
+            return embeddings
         except FileNotFoundError:
             logger.error(f"UMAP embeddings file not found at: {file_path}")
             return None
@@ -62,7 +64,23 @@ class ReduceEmbedDims:
             logger.exception(f"An error occurred while loading UMAP embeddings: {e}")
             return None
 
-    def process(self):
+    def _reduce_dims(self) -> None:
+        """
+        Reduce the dimensions of embeddings using UMAP.
+        """
+        embeddings = concat_embed_from_dir(self.embed_file["dir"])
+        umap_model = UMAP(**self.umap_args)
+        umap_embeddings = umap_model.fit_transform(embeddings)
+
+        dir_path, ext = self.umap_file.values()
+        file_path = get_file_path(dir_path, ext)
+
+        with open(file_path, "wb") as file:
+            np.save(file, umap_embeddings)
+
+        logger.info(f"Created UMAP embeddings for {len(umap_embeddings)} samples.")
+
+    def process(self) -> None:
         """
         Process the reduction of embeddings to UMAP space and handle exceptions.
         """
@@ -73,6 +91,11 @@ class ReduceEmbedDims:
 
 
 if __name__ == "__main__":
-    # Entry point of the script
-    processor = ReduceEmbedDims()
+    p_list = ["embed_file", "umap_file", "umap_args"]
+    args = parse_arguments(p_list)
+    params = load_config(args.config, p_list)
+
+    logger.info("Arguments: %s", params)
+
+    processor = ReduceEmbedDims(*params)
     processor.process()

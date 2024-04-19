@@ -5,6 +5,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from multimodalexplorer.api.endpoints import create_router
 
 app = FastAPI()

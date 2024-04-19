@@ -3,11 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import random
 
 from fastapi import APIRouter
 
-from ...functions.reduce_embed_dims import ReduceEmbedDims
+from multimodalexplorer.functions.reduce_embed_dims import ReduceEmbedDims
 
 router = APIRouter()
 
