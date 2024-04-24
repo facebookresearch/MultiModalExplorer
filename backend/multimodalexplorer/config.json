@@ -1,0 +1,28 @@
+{
+  "datasets": [
+    {
+      "type": "text",
+      "name": "embedding-data/sentence-compression",
+      "source_lang": "eng_Latn"
+    }
+  ],
+
+  "raw_data_file": { "dir": "artifact/raw", "ext": "tsv" },
+  "embed_file": { "dir": "artifact/embedding", "ext": "pt" },
+  "umap_file": { "dir": "artifact/umap", "ext": "npy" },
+  "index_file": { "dir": "artifact/index", "ext": "bin" },
+
+  "batch_size": 50,
+  "chunk_size": 100,
+  "train_data_size": 300,
+
+  "index_args": {
+    "k_neighbors": 5
+  },
+
+  "umap_args": {
+    "n_components": 2,
+    "n_neighbors": 5,
+    "min_dist": 0.6
+  }
+}

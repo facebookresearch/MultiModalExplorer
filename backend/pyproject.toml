@@ -16,12 +16,43 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-fairseq2 = "^0.2.0"
-sonar-space = "^0.2.1"
 fastapi = "^0.110.0"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
 pydantic = "^2.6.3"
+datasets = "^2.18.0"
+umap-learn = "^0.5.6"
+pandas = "2.0.3"
+faiss-cpu = "^1.8.0"
+argparse = "^1.4.0"
+sonar-space = "0.2.1"
 
+[tool.poetry.group.dev.dependencies]
+isort = "^5.13.2"
+black = "^24.4.1"
+pytest = "^8.1.1"
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38', 'py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
 
 [build-system]
 requires = ["poetry-core"]
