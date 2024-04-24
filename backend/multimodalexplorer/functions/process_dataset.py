@@ -10,10 +10,11 @@ from typing import Any, Dict, List
 
 import torch
 from datasets import DatasetDict, load_dataset
+from tqdm import tqdm
+
 from multimodalexplorer.types.data_types import DataFileType, DataSetType
 from multimodalexplorer.utils.helpers import VALID_DATASET_TYPES_LIST, get_file_path
 from multimodalexplorer.utils.utils import load_config, load_model, parse_arguments
-from tqdm import tqdm
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
