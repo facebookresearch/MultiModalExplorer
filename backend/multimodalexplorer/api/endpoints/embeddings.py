@@ -5,7 +5,6 @@
 
 
 from fastapi import APIRouter
-
 from multimodalexplorer.functions.reduce_embed_dims import ReduceEmbedDims
 
 router = APIRouter()
