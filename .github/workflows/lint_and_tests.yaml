@@ -62,14 +62,17 @@ jobs:
       #----------------------------------------------
 
       - name: isort
+        working-directory: ./backend
         run: |
           source .venv/bin/activate
           isort --check --diff .
       - name: black
+        working-directory: ./backend
         run: |
           source .venv/bin/activate
           black --check --diff .
       - name: pytest
+        working-directory: ./backend
         run: |
           source .venv/bin/activate
           pytest
