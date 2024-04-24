@@ -49,7 +49,7 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --no-root --with dev
         working-directory: ./backend
 
       #----------------------------------------------
@@ -62,8 +62,14 @@ jobs:
       #----------------------------------------------
 
       - name: isort
-        run: isort --check --diff .
+        run: |
+          source .venv/bin/activate
+          isort --check --diff .
       - name: black
-        run: black --check --diff .
+        run: |
+          source .venv/bin/activate
+          black --check --diff .
       - name: pytest
-        run: pytest
+        run: |
+          source .venv/bin/activate
+          pytest
