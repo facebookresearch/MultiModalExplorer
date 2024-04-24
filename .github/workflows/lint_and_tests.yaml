@@ -58,7 +58,7 @@ jobs:
       - name: Install project
         working-directory: ./backend
         run: poetry install --no-interaction
-        working-directory: ./backend
+
       #----------------------------------------------
 
       - name: isort
