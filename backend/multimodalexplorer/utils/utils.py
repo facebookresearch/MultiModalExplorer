@@ -10,9 +10,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 import torch
-from multimodalexplorer.utils.helpers import DEVICE, VALID_DATASET_TYPES
 from sonar.inference_pipelines.speech import SpeechToEmbeddingModelPipeline
 from sonar.inference_pipelines.text import TextToEmbeddingModelPipeline
+
+from multimodalexplorer.utils.helpers import DEVICE, VALID_DATASET_TYPES
 
 LOADED_MODELS: Dict[str, Any] = {}
 

@@ -8,6 +8,8 @@ import logging
 from typing import Any, Dict, Optional
 
 import numpy as np
+from umap import UMAP
+
 from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
 from multimodalexplorer.utils.utils import (
@@ -15,7 +17,6 @@ from multimodalexplorer.utils.utils import (
     load_config,
     parse_arguments,
 )
-from umap import UMAP
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

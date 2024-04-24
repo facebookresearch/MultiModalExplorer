@@ -9,6 +9,7 @@ import logging
 import faiss
 import numpy as np
 import torch
+
 from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
 from multimodalexplorer.utils.utils import (
