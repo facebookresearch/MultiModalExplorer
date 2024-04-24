@@ -49,18 +49,16 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: 
-          shell: poetry install --no-interaction --no-root
-          working-directory: ./backend
+        run: poetry install --no-interaction --no-root
+        working-directory: ./backend
 
       #----------------------------------------------
       # install your root project, if required
       #----------------------------------------------
       - name: Install project
         working-directory: ./backend
-        run: 
-          shell: poetry install --no-interaction
-          working-directory: ./backend
+        run: poetry install --no-interaction
+        working-directory: ./backend
       #----------------------------------------------
 
       - name: isort
