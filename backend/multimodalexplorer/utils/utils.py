@@ -56,28 +56,33 @@ def load_model(dataset_type: str) -> Any:
     return model
 
 
-def parse_arguments(key_list: List[str]) -> argparse.Namespace:
+def select_params(
+    config: Dict[str, Any], key_list: List[str]
+) -> List[Union[str, int, Dict]]:
+    picked_config = {key: config[key] for key in key_list if key in config}
+
+    params = list(picked_config.values())
+
+    return params
+
+
+def parse_arguments() -> Dict[str, Union[str, int, Dict]]:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--config",
         type=str,
-        help=f"Path to the configuration file. The configuration file should be a JSON file containing settings for the script. Specific settings for configuration includes {tuple(key_list)}. Default value is 'config.json'.",
+        help=f"Path to the configuration file. The configuration file should be a JSON file containing settings for the script. Default value is 'config.json'.",
         default="config.json",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
 
-
-def load_config(config_file: str, key_list: List[str]) -> List[Union[str, int, Dict]]:
-    config_file_path = Path(config_file).absolute()
+    config_file_path = Path(args.config).absolute()
     with open(config_file_path, "r") as f:
         config = json.load(f)
 
-    picked_config = {key: config[key] for key in key_list if key in config}
-
-    params = list(picked_config.values())
-    return params
+    return config
 
 
 def concat_embed_from_dir(dirname: str) -> torch.Tensor:

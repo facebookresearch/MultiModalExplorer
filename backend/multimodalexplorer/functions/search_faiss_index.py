@@ -5,6 +5,7 @@
 
 import logging
 import os
+from typing import List
 
 import faiss
 import numpy as np
@@ -12,10 +13,10 @@ import pandas as pd
 
 from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
-from multimodalexplorer.utils.utils import load_config, load_model, parse_arguments
+from multimodalexplorer.utils.utils import load_model
 
-# Set environment variable to avoid OpenMP runtime issues
-os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
+# Set KMP_DUPLICATE_LIB_OK environment variable to TRUE
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -87,7 +88,31 @@ class SearchFaissIndex:
 
         return query_embedding.numpy().astype(np.float32)
 
-    def search_index(self, search_query: dict) -> list:
+    def _query_result(self, indices) -> list:
+
+        if len(indices) == 0:
+            return []
+
+        dir_path, ext = self.raw_data_file.values()
+        file_path = get_file_path(dir_path, ext)
+
+        raw_data = pd.read_csv(file_path, sep="\t")
+
+        search_results = []
+        node_idxs = indices[0]
+
+        for idx in node_idxs:
+            row = raw_data.iloc[idx]
+            obj = {
+                "index": str(idx),
+                "data": row["data"],
+                "media_type": row["media_type"],
+            }
+            search_results.append(obj)
+
+        return search_results
+
+    def _query_index(self, search_query: dict) -> List[List[int]]:
         """
         Search the Faiss index using the query and return results.
 
@@ -102,30 +127,16 @@ class SearchFaissIndex:
         query_embedding = self._process_search_query(search_query)
         faiss.normalize_L2(query_embedding)
 
-        _, I = index.search(query_embedding, self.index_args["k_neighbors"])
+        _, indices = index.search(query_embedding, self.index_args["k_neighbors"])
 
-        dir_path, ext = self.raw_data_file.values()
-        file_path = get_file_path(dir_path, ext)
+        return self._query_result(indices)
 
-        raw_data = pd.read_csv(file_path, sep="\t")
-
-        list_searches = [raw_data.iloc[idx] for idx in I]
-        print(list_searches)
-        return list_searches
-
-
-if __name__ == "__main__":
-    p_list = ["index_file", "raw_data_file", "index_args"]
-    args = parse_arguments(p_list)
-    params = load_config(args.config, p_list)
-
-    logger.info("Arguments: %s", params)
-
-    processor = SearchFaissIndex(*params)
-
-    search_query = {
-        "search_data": "Asian stock markets",
-        "search_type": "text",
-        "search_src_lang": "eng_Latn",
-    }
-    processor.search_index(search_query)
+    def process(self, search_query: dict) -> None:
+        """
+        Process the search on faiss index and handle exceptions.
+        """
+        try:
+            return self._query_index(search_query)
+        except Exception as e:
+            logger.exception(f"An error occurred: {e}")
+            return None

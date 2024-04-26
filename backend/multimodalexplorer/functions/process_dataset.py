@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from multimodalexplorer.types.data_types import DataFileType, DataSetType
 from multimodalexplorer.utils.helpers import VALID_DATASET_TYPES_LIST, get_file_path
-from multimodalexplorer.utils.utils import load_config, load_model, parse_arguments
+from multimodalexplorer.utils.utils import load_model, parse_arguments, select_params
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +29,7 @@ class ProcessDataset:
         embed_file: DataFileType,
         batch_size: int,
         chunk_size: int,
+        dataset_sample_size: int,
     ):
         """
         Initialize ProcessDataset object with necessary attributes.
@@ -51,6 +52,7 @@ class ProcessDataset:
         self.chunk_size = chunk_size
         self.embed_file = embed_file
         self.raw_data_file = raw_data_file
+        self.dataset_sample_size = dataset_sample_size
 
         self.dataset_types, self.dataset_names, self.dataset_src_lang = (
             [item[key] for item in self.datasets]
@@ -88,7 +90,8 @@ class ProcessDataset:
         """
         for key in ["set", "image", "sentence", "audio_url"]:
             if "set" in batch:
-                return [e[0] for e in batch["set"]]
+                data = [e[0] for e in batch["set"]]
+                return [s for s in data if isinstance(s, str) and len(s) <= 514]
             else:
                 return [e[key] for e in batch]
 
@@ -156,7 +159,9 @@ class ProcessDataset:
 
             loaded_dataset = load_dataset(dataset_name, split="train")
 
-            loaded_dataset_sample = loaded_dataset.shuffle(seed=42).select(range(500))
+            loaded_dataset_sample = loaded_dataset.shuffle(seed=42).select(
+                range(self.dataset_sample_size)
+            )
 
             logger.info(
                 f"Loaded {len(loaded_dataset_sample)} samples from dataset '{dataset_name}'"
@@ -233,9 +238,16 @@ class ProcessDataset:
 
 
 if __name__ == "__main__":
-    p_list = ["datasets", "raw_data_file", "embed_file", "batch_size", "chunk_size"]
-    args = parse_arguments(p_list)
-    params = load_config(args.config, p_list)
+    p_list = [
+        "datasets",
+        "raw_data_file",
+        "embed_file",
+        "batch_size",
+        "chunk_size",
+        "dataset_sample_size",
+    ]
+    args = parse_arguments()
+    params = select_params(args, p_list)
 
     logger.info("Arguments: %s", params)
 

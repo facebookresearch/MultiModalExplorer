@@ -4,17 +4,25 @@
 # LICENSE file in the root directory of this source tree.
 
 
+from typing import Any, Dict
+
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
-from multimodalexplorer.functions.reduce_embed_dims import ReduceEmbedDims
-
-router = APIRouter()
-
-reduce_embs = ReduceEmbedDims()
+from multimodalexplorer.functions.fetch_embed import fetch_embed
 
 
-@router.get("/embeddings")
-async def get_embeddings():
-    embeddings = reduce_embs.load_embeddings().tolist()
+def create_embeddings_router() -> APIRouter:
+    router = APIRouter()
 
-    return {"data": embeddings}
+    @router.get("/get_embeddings")
+    async def get_embeddings() -> Dict[str, Any]:
+
+        try:
+            embeddings = fetch_embed()
+
+            return JSONResponse(content={"data": embeddings}, status_code=200)
+        except Exception as e:
+            return {"error": f"Failed to load embeddings: {str(e)}"}
+
+    return router
