@@ -1,157 +1,305 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 //
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-/* eslint-disable react-hooks/exhaustive-deps */
-
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState, memo } from "react";
 import createScatterplot from "regl-scatterplot";
 import { scaleLinear } from "d3-scale";
+import Konva from "konva";
+import { Layer as KonvaLayer } from "konva/lib/Layer";
+
+import { useAppContext } from "@providers/ContextProvider";
+import { truncate } from "@utils";
+import { useSearchParams } from "react-router-dom";
+import { POINT_COLOR_LIST } from "@constants";
+
+interface EmbeddingPoint {
+  x: number;
+  y: number;
+  cluster: number;
+  data: string;
+}
 
 interface RenderEmbeddingsProps {
-  pointSize?: number;
-  embeddings: Array<[number, number, number]>;
+  embeddings: EmbeddingPoint[];
   handleEmdeddingSelect?: (detail: number[]) => Promise<void>;
   handleEmdeddingUnselect?: () => void;
 }
 
-const maxPointLabels = 50;
-const pointColor = [
-  "#d192b7",
-  "#6fb2e4",
-  "#eecb62",
-  "#56bf92",
-  "#dca237",
-  "#3a84cc",
-  "#c76526",
-  "#9c11d8",
-  "#71ff82",
-];
+const MAX_POINT_LABEL = 15;
+const POINT_SIZE = 3;
 
-const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = ({
-  pointSize = 1,
-  embeddings,
-  handleEmdeddingSelect,
-  handleEmdeddingUnselect,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const textOverlayRef = useRef<HTMLCanvasElement>(null);
-
-  const handleSelect = useCallback(({ points }: { points: number[] }) => {
-    if (handleEmdeddingSelect) handleEmdeddingSelect(points);
-  }, []);
-
-  const handleDeselect = () => {
-    if (handleEmdeddingUnselect) handleEmdeddingUnselect();
-  };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const textOverlayEl = textOverlayRef.current;
-
-    if (!canvas || !textOverlayEl || embeddings.length === 0) return;
-
-    const { width, height } = canvas.getBoundingClientRect();
-
-    const xScale = scaleLinear().domain([-1, 1]).range([0, width]);
-    const yScale = scaleLinear().domain([-1, 1]).range([height, 0]);
-
-    const scatterplot = createScatterplot({
-      canvas: canvas,
-      pointSize,
-      width,
-      height: height,
-      xScale,
-      yScale,
-      showReticle: true,
-    });
-
-    scatterplot.draw(embeddings);
-
-    scatterplot.set({
-      deselectOnDblClick: true,
-      colorBy: "category",
-      pointColor,
-    });
-
-    scatterplot.subscribe("select", handleSelect);
-
-    scatterplot.subscribe("deselect", handleDeselect);
-
-    const resizeTextOverlay = () => {
-      const { width, height } = canvas!.parentElement!.getBoundingClientRect();
-
-      textOverlayEl.width = width * window.devicePixelRatio;
-      textOverlayEl.height = height * window.devicePixelRatio;
-      textOverlayEl.style.width = `${width}px`;
-      textOverlayEl.style.height = `${height}px`;
-    };
-
-    resizeTextOverlay();
-    window.addEventListener("resize", resizeTextOverlay);
-
-    const overlayFontSize = 12;
-    const textOverlayCtx = textOverlayEl.getContext("2d");
-
-    if (!textOverlayCtx) return;
-
-    textOverlayCtx.font = `${
-      overlayFontSize * window.devicePixelRatio
-    }px sans-serif`;
-    textOverlayCtx.textAlign = "center";
-
-    const handleView = () => {
-      const showPointLabels = (pointsInView: number[]) => {
-        clearPointLabels();
-        textOverlayCtx.fillStyle = "rgb(255, 255, 255)";
-
-        for (let i = 0; i < pointsInView.length; i++) {
-          const [x, y] = embeddings[pointsInView[i]];
-          const xPixel = xScale(x) * window.devicePixelRatio;
-          const yPixel =
-            yScale(y) * window.devicePixelRatio -
-            overlayFontSize * 1.2 * window.devicePixelRatio;
-
-          textOverlayCtx.fillText(pointsInView[i].toString(), xPixel, yPixel);
-        }
-      };
-
-      const clearPointLabels = () => {
-        textOverlayCtx.clearRect(
-          0,
-          0,
-          width * window.devicePixelRatio,
-          height * window.devicePixelRatio
-        );
-      };
-
-      const pointsInView = scatterplot.get("pointsInView");
-
-      if (pointsInView.length <= maxPointLabels) {
-        showPointLabels(pointsInView);
-      } else {
-        clearPointLabels();
-      }
-    };
-
-    scatterplot.subscribe("view", handleView);
-
-    return () => {
-      scatterplot.destroy();
-      window.removeEventListener("resize", resizeTextOverlay);
-    };
-  }, [embeddings]);
-
-  return (
-    <div className="w-screen h-screen pb-4">
-      <canvas ref={canvasRef} className="!w-full !h-full" />
-      <canvas
-        ref={textOverlayRef}
-        className="!w-full !h-full absolute top-0 right-0 pointer-events-none"
-      />
-    </div>
-  );
+const transitionProp = {
+  transition: true,
+  transitionDuration: 1000,
 };
+
+const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
+  ({ embeddings, handleEmdeddingSelect, handleEmdeddingUnselect }) => {
+    // Get the store and setStore function from the app context
+    const { store, setStore } = useAppContext();
+
+    const [width, setWidth] = useState(1);
+    const [height, setHeight] = useState(1);
+
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const stageRef = useRef<HTMLDivElement | null>(null);
+    const layerRef = useRef<KonvaLayer | null>(null);
+    const scatterplotRef = useRef(null);
+
+    const [currentQueryParameters, setSearchParams] = useSearchParams();
+
+    // Handle embedding selection
+    const handleSelect = useCallback(
+      ({ points }: { points: number[] }) => {
+        handleEmdeddingSelect?.(points);
+      },
+      [handleEmdeddingSelect]
+    );
+
+    // Handle embedding deselection
+    const handleDeselect = useCallback(() => {
+      handleEmdeddingUnselect?.();
+    }, [handleEmdeddingUnselect]);
+
+    // Zoom to a specific point in the scatterplot
+    const handleZoomToPoint = useCallback(
+      (id: number) => {
+        // @ts-expect-error "Type not supported by scatterplot"
+        scatterplotRef.current?.zoomToPoints([id], {
+          padding: 0.2,
+          ...transitionProp,
+        });
+      },
+      [scatterplotRef]
+    );
+
+    // Zoom to the origin of the scatterplot
+    const handleZoomToOrigin = useCallback(() => {
+      // @ts-expect-error "Type not supported by scatterplot"
+      scatterplotRef?.current?.zoomToOrigin({
+        ...transitionProp,
+      });
+    }, [scatterplotRef]);
+
+    // Zoom to a specific area in the scatterplot
+    const handleZoomToArea = useCallback(() => {
+      // @ts-expect-error "Type not supported by scatterplot"
+      scatterplotRef.current?.zoomToArea(
+        { x: 0, y: 0, width: 0.03, height: 0.03 },
+        { ...transitionProp }
+      );
+    }, [scatterplotRef]);
+
+    // Clean the data layer
+    const handleCleanData = useCallback(() => {
+      layerRef.current?.destroyChildren();
+    }, []);
+
+    // Draw data points on the canvas
+    const handleDrawData = useCallback(
+      (
+        pointData: Array<{ x: number; y: number; data: string; id: string }>
+      ) => {
+        const layer = layerRef.current;
+
+        if (!layer || pointData.length <= 0) return;
+
+        handleCleanData();
+
+        pointData.forEach((item) => {
+          const text = new Konva.Text({
+            x: item.x,
+            y: item.y,
+            text: item.data,
+            fontSize: 14,
+            fill: "white",
+            width: 250,
+            padding: 8,
+            wrap: "word",
+            lineHeight: 1.2,
+          });
+
+          const rect = new Konva.Rect({
+            x: item.x,
+            y: item.y,
+            stroke: "#555",
+            strokeWidth: 1,
+            fill: "#121212",
+            width: text.width(),
+            height: text.height(),
+            cornerRadius: 5,
+          });
+
+          layer.add(rect);
+          layer.add(text);
+        });
+
+        layer.batchDraw();
+      },
+      [handleCleanData]
+    );
+
+    // Show data points based on the points in view
+    const handleShowData = useCallback(
+      (
+        pointsInView: number[],
+        xScale: scaleLinear<number, number>,
+        yScale: scaleLinear<number, number>
+      ) => {
+        const dataPoints = pointsInView.reduce((acc, point) => {
+          const { x, y, data } = embeddings[point];
+          acc.push({
+            id: point.toString(),
+            point,
+            x: xScale(x),
+            y: yScale(y),
+            data: truncate(data, 100),
+          });
+          return acc;
+        }, [] as Array<{ id: string; point: number; x: number; y: number; data: string }>);
+
+        handleDrawData(dataPoints);
+      },
+      [embeddings, handleDrawData]
+    );
+
+    // Handle the view event from the scatterplot
+    const handleView = useCallback(
+      (xScale, yScale) => {
+        let timer = undefined as ReturnType<typeof setTimeout> | undefined;
+
+        const scatterplot = scatterplotRef.current!;
+        // @ts-expect-error "Type not supported by scatterplot"
+        const getCamera = scatterplot.get("camera");
+
+        if (timer) {
+          clearTimeout(timer);
+        }
+
+        timer = setTimeout(() => {
+          const setQueryParameters = new URLSearchParams();
+          setQueryParameters.set(
+            "at",
+            `${getCamera.target[0]},${getCamera.target[1]},${getCamera.distance[0]}`
+          );
+          setSearchParams(setQueryParameters, { replace: true });
+        }, 1000);
+
+        // @ts-expect-error "Type not supported by scatterplot"
+        const pointsInView = scatterplot.get("pointsInView");
+
+        if (pointsInView.length <= MAX_POINT_LABEL) {
+          handleShowData(pointsInView, xScale, yScale);
+          // @ts-expect-error "Type not supported by scatterplot"
+          scatterplot.set({ opacity: [0] });
+        } else {
+          handleCleanData();
+          // @ts-expect-error "Type not supported by scatterplot"
+          scatterplot.set({ opacity: [1] });
+        }
+      },
+      [handleCleanData, handleShowData]
+    );
+
+    // Set the width and height of the canvas based on the parent element
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      const wrapper = canvas?.parentElement?.getBoundingClientRect();
+      setWidth(wrapper!.width);
+      setHeight(wrapper!.height);
+    }, [canvasRef.current]);
+
+    // Initialize the scatterplot and set up event handlers
+    useEffect(() => {
+      const stageContainer = stageRef.current;
+
+      if (!canvasRef.current || !stageContainer || embeddings.length === 0)
+        return;
+
+      const [xScale, yScale] = [
+        scaleLinear().domain([-1, 1]).range([0, width]),
+        scaleLinear().domain([-1, 1]).range([0, height]),
+      ];
+
+      const camara_pos = currentQueryParameters.get("at");
+
+      const scatterplot = createScatterplot({
+        canvas: canvasRef.current,
+        pointSize: POINT_SIZE,
+        width,
+        height,
+        xScale,
+        yScale,
+      });
+
+      const stage = new Konva.Stage({
+        container: stageContainer,
+        width,
+        height,
+      });
+
+      const layer = new Konva.Layer();
+      layerRef.current = layer;
+
+      stage.add(layer);
+
+      scatterplot.draw(
+        embeddings.map((embed) => [embed.x, embed.y, embed.cluster])
+      );
+
+      scatterplot.set({
+        deselectOnDblClick: true,
+        colorBy: "category",
+        pointColor: POINT_COLOR_LIST,
+        showReticle: true,
+        cameraTarget: camara_pos
+          ? [
+              parseFloat(camara_pos.split(",")[0]),
+              parseFloat(camara_pos.split(",")[1]),
+            ]
+          : [0, 0],
+        cameraDistance: camara_pos ? parseFloat(camara_pos.split(",")[2]) : 1,
+      });
+
+      scatterplot.subscribe("select", handleSelect);
+      scatterplot.subscribe("deselect", handleDeselect);
+
+      scatterplot.subscribe("view", ({ xScale, yScale }) =>
+        handleView(xScale, yScale)
+      );
+
+      // @ts-expect-error "Type not supported by scatterplot"
+      scatterplotRef.current = scatterplot;
+
+      return () => {
+        scatterplot.destroy();
+      };
+    }, [width, height, embeddings]);
+
+    useEffect(() => {
+      if (scatterplotRef.current) {
+        setStore({
+          ...store,
+          handleZoomToPoint,
+          handleZoomToOrigin,
+          handleZoomToArea,
+        });
+      }
+    }, [embeddings, scatterplotRef.current]);
+
+    return (
+      <div className="absolute w-full h-[calc(100%-80px)] top-24">
+        <canvas ref={canvasRef} className="w-full h-full" />
+        <div
+          ref={stageRef}
+          className="absolute top-0 bottom-0 left-0 right-0 w-full h-full pointer-events-none"
+        />
+      </div>
+    );
+  }
+);
 
 export default RenderEmbeddings;

@@ -5,13 +5,12 @@
 
 import axios from "axios";
 
-const BASE_URL = "http://127.0.0.1:8000/api";
+import { BASE_URL } from "@constants";
 
-export const getEmbeddingPoints = async (): Promise<
-  Array<[number, number, number]>
-> => {
+export const getEmbeddingPoints = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/embeddings`);
+    const response = await axios.get(`${BASE_URL}/embedding/get_embeddings`);
+
     return response?.data?.data || [];
   } catch (error) {
     throw new Error(error as string);

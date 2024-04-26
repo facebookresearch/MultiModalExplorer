@@ -4,18 +4,24 @@
 // LICENSE file in the root directory of this source tree.
 
 import { RouterProvider } from "react-router-dom";
-import { router } from "./navigation/router";
 
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import { router } from "@navigation/router";
+import Navbar from "@components/Navbar";
+import Footer from "@components/Footer";
+import { ContextProvider } from "@providers/ContextProvider";
+
 import "./index.css";
 
 function App() {
   return (
-    <div className="visualizer-page">
-      <Navbar />
-      <RouterProvider router={router} />
-      <Footer />
+    <div className="visualizer">
+      <ContextProvider>
+        <Navbar />
+        <main className="page-container h-screen w-screen">
+          <RouterProvider router={router} />
+        </main>
+        <Footer />
+      </ContextProvider>
     </div>
   );
 }

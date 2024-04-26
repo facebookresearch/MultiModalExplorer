@@ -5,20 +5,19 @@
 
 import { useEffect, useState } from "react";
 
-import Loader from "../components/Loader";
-import RenderEmbeddings from "../components/RenderEmbeddings";
-import EmbeddingDetails from "../components/EmbeddingDetails";
+import Loader from "@components/Loader";
+import RenderEmbeddings from "@components/RenderEmbeddings";
+import EmbeddingDetails from "@components/EmbeddingDetails";
 
 import {
   getEmbeddingPointDetails,
   getEmbeddingPoints,
-} from "../actions/api/embedding";
+} from "@actions/api/embedding";
+import { EmbeddingProps } from "types/embedding.types";
 
-export default function Home() {
+export default function Home(): JSX.Element {
   // state for storing embeddings
-  const [embeddings, setEmbeddings] = useState<Array<[number, number, number]>>(
-    []
-  );
+  const [embeddings, setEmbeddings] = useState<EmbeddingProps>([]);
 
   // state for storing a single embedding point
   const [embeddingPoint, setEmbeddingPoint] = useState<null | number[]>(null);
@@ -73,7 +72,7 @@ export default function Home() {
           />
         </>
       ) : (
-        <div className="w-screen h-screen flex justify-center items-center">
+        <div className="flex items-center justify-center w-screen h-screen">
           <Loader />
         </div>
       )}
