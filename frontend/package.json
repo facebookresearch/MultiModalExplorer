@@ -14,6 +14,7 @@
     "konva": "^9.3.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.1.0",
     "react-router-dom": "^6.22.3",
     "regl-scatterplot": "^1.8.5"
   },

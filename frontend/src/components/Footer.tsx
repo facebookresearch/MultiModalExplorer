@@ -3,11 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import ZoomPlus from "@assets/icons/zoom-plus.svg?react";
-import ZoomMinus from "@assets/icons/zoom-minus.svg?react";
-import metaAILogo from "@assets/icons/metaAI-white-logo.svg";
+import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 
-import { useAppContext } from "../providers/ContextProvider";
+import metaAILogo from "@assets/icons/metaAI-white-logo.svg";
+import { useAppContext } from "@providers/ContextProvider";
 
 interface ZoomButton {
   name: string;
@@ -16,12 +15,16 @@ interface ZoomButton {
 }
 
 export default function Footer(): JSX.Element {
-  const { store } = useAppContext();
+  const { zoomHandlers } = useAppContext();
 
   // Define the zoomBtns array with type annotation
   const zoomBtns: ZoomButton[] = [
-    { name: "zoomplus", Icon: ZoomPlus, action: "handleZoomToOrigin" },
-    { name: "zoomminus", Icon: ZoomMinus, action: "handleZoomToArea" },
+    { name: "zoomplus", Icon: RiZoomInFill, action: "handleZoomToArea" },
+    {
+      name: "zoomminus",
+      Icon: RiZoomOutFill,
+      action: "handleZoomToOrigin",
+    },
   ];
 
   return (
@@ -35,7 +38,7 @@ export default function Footer(): JSX.Element {
             >
               <item.Icon
                 className="w-8 h-8 cursor-pointer"
-                onClick={store?.[item.action]}
+                onClick={zoomHandlers?.[item.action]}
               />
             </div>
           ))}

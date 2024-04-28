@@ -9,20 +9,27 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 
 interface AppContextType {
-  store: any;
-  setStore: React.Dispatch<React.SetStateAction<any>>;
+  error: any;
+  setError: (e: any) => void;
+  zoomHandlers: any;
+  setZoomHandlers: (e: any) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const initialData = {};
-
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
-  const [store, setStore] = useState(initialData);
+  const [error, setError] = useState({
+    isError: false,
+    errorMsg: null,
+  });
+
+  const [zoomHandlers, setZoomHandlers] = useState();
 
   const value: AppContextType = {
-    store,
-    setStore,
+    error,
+    setError,
+    zoomHandlers,
+    setZoomHandlers,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

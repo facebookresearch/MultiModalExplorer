@@ -3,8 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { useEffect, useState } from "react";
-
 import Loader from "@components/Loader";
 import RenderEmbeddings from "@components/RenderEmbeddings";
 import EmbeddingDetails from "@components/EmbeddingDetails";
@@ -13,51 +11,30 @@ import {
   getEmbeddingPointDetails,
   getEmbeddingPoints,
 } from "@actions/api/embedding";
-import { EmbeddingProps } from "types/embedding.types";
+import {
+  EmbeddingsDetailsResponseProps,
+  EmbeddingsResponseProps,
+} from "@type/embedding.types";
 
 export default function Home(): JSX.Element {
-  // state for storing embeddings
-  const [embeddings, setEmbeddings] = useState<EmbeddingProps>([]);
+  const { data: embeddings, isPending } =
+    getEmbeddingPoints() as EmbeddingsResponseProps;
 
-  // state for storing a single embedding point
-  const [embeddingPoint, setEmbeddingPoint] = useState<null | number[]>(null);
-
-  // state for storing details of a single embedding
-  const [embeddingDetails, setEmbeddingDetails] = useState<null | {
-    id: number;
-  }>(null);
-
-  // state for indicating whether embedding details are being loaded
-  const [loadingEmbeddingDetails, setLoadingEmbeddingDetails] =
-    useState<boolean>(false);
-
-  useEffect(() => {
-    const fetchEmbeddings = async () => {
-      const resp = await getEmbeddingPoints();
-      setEmbeddings(resp);
-    };
-    fetchEmbeddings();
-  }, []);
+  const {
+    data: embeddingDetails,
+    isPending: loadingEmbeddingDetails,
+    sendData,
+  } = getEmbeddingPointDetails() as EmbeddingsDetailsResponseProps;
 
   const handleEmdeddingSelect = async (point: number[]) => {
-    setLoadingEmbeddingDetails(true);
-    setEmbeddingPoint(point);
-
-    const details = await getEmbeddingPointDetails(point);
-
-    setEmbeddingDetails(details);
-    setLoadingEmbeddingDetails(false);
+    await sendData(point);
   };
 
-  const handleEmdeddingUnselect = () => {
-    setEmbeddingDetails(null);
-    setEmbeddingPoint(null);
-    setLoadingEmbeddingDetails(false);
-  };
+  const handleEmdeddingUnselect = () => {};
 
   return (
     <div className="home-page">
-      {embeddings?.length ? (
+      {!isPending ? (
         <>
           <RenderEmbeddings
             embeddings={embeddings}
@@ -66,7 +43,6 @@ export default function Home(): JSX.Element {
           />
 
           <EmbeddingDetails
-            embeddingPoint={embeddingPoint}
             embeddingDetails={embeddingDetails}
             loadingEmbeddingDetails={loadingEmbeddingDetails}
           />

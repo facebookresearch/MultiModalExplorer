@@ -14,19 +14,7 @@ import { useAppContext } from "@providers/ContextProvider";
 import { truncate } from "@utils";
 import { useSearchParams } from "react-router-dom";
 import { POINT_COLOR_LIST } from "@constants";
-
-interface EmbeddingPoint {
-  x: number;
-  y: number;
-  cluster: number;
-  data: string;
-}
-
-interface RenderEmbeddingsProps {
-  embeddings: EmbeddingPoint[];
-  handleEmdeddingSelect?: (detail: number[]) => Promise<void>;
-  handleEmdeddingUnselect?: () => void;
-}
+import { RenderEmbeddingsProps } from "types/embedding.types";
 
 const MAX_POINT_LABEL = 15;
 const POINT_SIZE = 3;
@@ -38,8 +26,8 @@ const transitionProp = {
 
 const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
   ({ embeddings, handleEmdeddingSelect, handleEmdeddingUnselect }) => {
-    // Get the store and setStore function from the app context
-    const { store, setStore } = useAppContext();
+    // Get the handlers function from the app context
+    const { setZoomHandlers } = useAppContext();
 
     const [width, setWidth] = useState(1);
     const [height, setHeight] = useState(1);
@@ -49,7 +37,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     const layerRef = useRef<KonvaLayer | null>(null);
     const scatterplotRef = useRef(null);
 
-    const [currentQueryParameters, setSearchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // Handle embedding selection
     const handleSelect = useCallback(
@@ -150,7 +138,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
         yScale: scaleLinear<number, number>
       ) => {
         const dataPoints = pointsInView.reduce((acc, point) => {
-          const { x, y, data } = embeddings[point];
+          const { x, y, data } = embeddings![point];
           acc.push({
             id: point.toString(),
             point,
@@ -169,11 +157,14 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     // Handle the view event from the scatterplot
     const handleView = useCallback(
       (xScale, yScale) => {
-        let timer = undefined as ReturnType<typeof setTimeout> | undefined;
-
         const scatterplot = scatterplotRef.current!;
+
+        if (!scatterplot) return;
+
         // @ts-expect-error "Type not supported by scatterplot"
         const getCamera = scatterplot.get("camera");
+
+        let timer = undefined as ReturnType<typeof setTimeout> | undefined;
 
         if (timer) {
           clearTimeout(timer);
@@ -216,7 +207,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     useEffect(() => {
       const stageContainer = stageRef.current;
 
-      if (!canvasRef.current || !stageContainer || embeddings.length === 0)
+      if (!canvasRef.current || !stageContainer || embeddings?.length === 0)
         return;
 
       const [xScale, yScale] = [
@@ -224,7 +215,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
         scaleLinear().domain([-1, 1]).range([0, height]),
       ];
 
-      const camara_pos = currentQueryParameters.get("at");
+      const camara_pos = searchParams.get("at");
 
       const scatterplot = createScatterplot({
         canvas: canvasRef.current,
@@ -247,7 +238,9 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
       stage.add(layer);
 
       scatterplot.draw(
-        embeddings.map((embed) => [embed.x, embed.y, embed.cluster])
+        embeddings?.length
+          ? embeddings?.map((embed) => [embed.x, embed.y, embed.cluster])
+          : []
       );
 
       scatterplot.set({
@@ -281,17 +274,16 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
 
     useEffect(() => {
       if (scatterplotRef.current) {
-        setStore({
-          ...store,
+        setZoomHandlers({
           handleZoomToPoint,
           handleZoomToOrigin,
           handleZoomToArea,
         });
       }
-    }, [embeddings, scatterplotRef.current]);
+    }, [scatterplotRef.current]);
 
     return (
-      <div className="absolute w-full h-[calc(100%-80px)] top-24">
+      <div className="absolute w-full h-[calc(100%-80px)] top-20 bottom-0">
         <canvas ref={canvasRef} className="w-full h-full" />
         <div
           ref={stageRef}

@@ -17,9 +17,7 @@ function App() {
     <div className="visualizer">
       <ContextProvider>
         <Navbar />
-        <main className="page-container h-screen w-screen">
-          <RouterProvider router={router} />
-        </main>
+        <RouterProvider router={router} />
         <Footer />
       </ContextProvider>
     </div>

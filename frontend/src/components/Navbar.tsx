@@ -8,11 +8,11 @@ import Searchbar from "./Searchbar";
 export default function Navbar(): JSX.Element {
   return (
     <nav className="navbar">
-      <div className="fixed top-0 left-0 px-4 z-50 bg-base-200 flex justify-between items-center h-20 gap-6 w-full">
-        <h1 className="text-lg font-bold flex-none">
+      <div className="fixed top-0 left-0 z-[1100] flex items-center justify-between w-full h-20 gap-6 px-4 bg-base-200">
+        <h1 className="flex-none text-lg font-bold">
           Multimodal Embedding Visualizer
         </h1>
-        <div className="flex w-full justify-start">
+        <div className="flex justify-start w-full">
           <Searchbar />
         </div>
       </div>
