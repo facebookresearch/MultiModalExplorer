@@ -3,9 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-services:
-  # TODO: Add the Dockerfile for the FAISS Index service
+# version: '3.7'
 
+services:
   api:
     build:
       context: ./backend
@@ -13,7 +13,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/backend/app
+      - ./backend:/app  # Mount backend directory into the container
 
   ui:
     build:
@@ -22,4 +22,4 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - .:/frontend/app
+      - ./frontend:/app  # Mount frontend directory into the container

@@ -10,7 +10,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy the dependencies file to the working directory
-COPY ./package.json ./pnpm-lock.yaml ./
+COPY ./package.json ./pnpm-lock.yaml /app/
 
 # Install pnpm
 RUN npm install -g pnpm
@@ -19,9 +19,9 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 # Copy the rest of the application
-COPY . .
+COPY ./ /app/
 
-# Build the TypeScript code
+# # Build the TypeScript code
 RUN pnpm run build
 
 # Expose the port the app runs on
