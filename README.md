@@ -24,10 +24,19 @@ cd MultiModalExplorer
 3. Run docker-compose to build the development environment
 
 ```bash
-docker compose up --build
+docker compose up --build -d 
 ```
 
 This command will build and start the backend and frontend servers. The frontend server will be available at `http://localhost:5173`.
+
+4. To stop the development environment, run
+
+```bash
+docker compose down
+```
+### Note
+
+You only need to run the `docker compose up --build -d` command once. After that, you can start and stop the development environment using the `docker compose up` and `docker compose down` commands.
 
 # Contributing
 
