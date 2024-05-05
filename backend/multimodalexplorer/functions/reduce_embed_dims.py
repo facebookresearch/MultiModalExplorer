@@ -6,8 +6,8 @@
 import logging
 from typing import Any, Dict
 
+import hdbscan
 import numpy as np
-from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 from umap import UMAP
 
@@ -30,7 +30,7 @@ class ReduceEmbedDims:
         embed_file: DataFileType,
         umap_file: DataFileType,
         umap_args: Dict[str, Any],
-        kmean_args: Dict[str, Any],
+        cluster_args: Dict[str, Any],
     ):
         """
         Initialize the ReduceEmbedDims class.
@@ -43,11 +43,11 @@ class ReduceEmbedDims:
         self.embed_file = embed_file
         self.umap_file = umap_file
         self.umap_args = umap_args
-        self.kmean_args = kmean_args
+        self.cluster_args = cluster_args
 
-    def _cluster_embed(self, embeddings):
+    def _cluster_embed(self, umap_embeddings, normalized_embeddings):
         """
-        Cluster embeddings using K-Means.
+        Cluster embeddings using HDBSCAN.
 
         Args:
             embeddings (numpy.ndarray): Input embeddings.
@@ -55,15 +55,25 @@ class ReduceEmbedDims:
         Returns:
             numpy.ndarray: Embeddings with additional cluster labels.
         """
-        # Create K-Means model
-        n_clusters, n_init, random_state = self.kmean_args.values()
-        kmeans = KMeans(n_clusters=n_clusters, n_init=n_init, random_state=random_state)
 
         # Perform clustering
-        clusters = kmeans.fit_predict(embeddings)
+
+        hdbscan_v = hdbscan.HDBSCAN(**self.cluster_args)
+        clusters = hdbscan_v.fit_predict(umap_embeddings)
+
+        # Get the maximum cluster label
+        max_cluster_label = clusters.max()
+
+        # Reassign noise points (-1) to the next available number
+        noise_label = max_cluster_label + 1
+        clusters[clusters == -1] = noise_label
 
         # Append cluster labels to embeddings
-        embedding_with_clusters = np.column_stack((embeddings, clusters))
+        embedding_with_clusters = np.column_stack((normalized_embeddings, clusters))
+
+        logger.info(
+            f"Created clusters for embeddings with {max_cluster_label} cluster max."
+        )
 
         return embedding_with_clusters
 
@@ -82,7 +92,7 @@ class ReduceEmbedDims:
         normalized_embeddings = scaler.fit_transform(umap_embeddings)
 
         # Cluster normalized embeddings
-        return self._cluster_embed(normalized_embeddings)
+        return self._cluster_embed(umap_embeddings, normalized_embeddings)
 
     def _reduce_dims(self) -> None:
         """
@@ -113,10 +123,11 @@ class ReduceEmbedDims:
             self._reduce_dims()
         except Exception as e:
             logger.exception(f"An error occurred during dimension reduction: {e}")
+            return None
 
 
 if __name__ == "__main__":
-    p_list = ["embed_file", "umap_file", "umap_args", "kmean_args"]
+    p_list = ["embed_file", "umap_file", "umap_args", "cluster_args"]
     args = parse_arguments()
     params = select_params(args, p_list)
 

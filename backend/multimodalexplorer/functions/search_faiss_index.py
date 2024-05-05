@@ -9,11 +9,14 @@ from typing import List
 
 import faiss
 import numpy as np
-import pandas as pd
 
-from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
-from multimodalexplorer.utils.utils import load_model
+from multimodalexplorer.utils.utils import (
+    get_embeds_details,
+    load_model,
+    parse_arguments,
+    select_params,
+)
 
 # Set KMP_DUPLICATE_LIB_OK environment variable to TRUE
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -23,9 +26,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Parse command line arguments
+args = parse_arguments()
+params = select_params(args, ["index_file", "raw_data_file", "index_args"])
+index_file, raw_data_file, index_args = params
+
+
 class SearchFaissIndex:
     def __init__(
-        self, index_file: DataFileType, raw_data_file: DataFileType, index_args: dict
+        self,
     ):
         """
         Initialize SearchFaissIndex object.
@@ -38,6 +47,7 @@ class SearchFaissIndex:
         self.index_file = index_file
         self.raw_data_file = raw_data_file
         self.index_args = index_args
+        self.table = None
 
     def _load_index(self) -> faiss.Index:
         """
@@ -47,10 +57,7 @@ class SearchFaissIndex:
             faiss.Index: Loaded Faiss index.
         """
         dir_path, ext = self.index_file.values()
-        file_path = get_file_path(dir_path, ext)
-
-        if not file_path.exists():
-            raise FileNotFoundError(f"Index file '{file_path}' not found.")
+        file_path = get_file_path(dir_path, ext, False)
 
         index = faiss.read_index(str(file_path))
         return index
@@ -65,15 +72,6 @@ class SearchFaissIndex:
         Returns:
             np.ndarray: Query embeddings.
         """
-        if not search_query:
-            raise ValueError("Search data is empty.")
-
-        required_keys = {"search_data", "search_type", "search_src_lang"}
-        if not required_keys.issubset(search_query.keys()):
-            raise ValueError(
-                "Search object keys must contain 'search_data', 'search_type', and 'search_src_lang'"
-            )
-
         search_data, search_type, search_src_lang = search_query.values()
 
         data2vec_model = load_model(search_type)
@@ -88,30 +86,6 @@ class SearchFaissIndex:
 
         return query_embedding.numpy().astype(np.float32)
 
-    def _query_result(self, indices) -> list:
-
-        if len(indices) == 0:
-            return []
-
-        dir_path, ext = self.raw_data_file.values()
-        file_path = get_file_path(dir_path, ext)
-
-        raw_data = pd.read_csv(file_path, sep="\t")
-
-        search_results = []
-        node_idxs = indices[0]
-
-        for idx in node_idxs:
-            row = raw_data.iloc[idx]
-            obj = {
-                "index": str(idx),
-                "data": row["data"],
-                "media_type": row["media_type"],
-            }
-            search_results.append(obj)
-
-        return search_results
-
     def _query_index(self, search_query: dict) -> List[List[int]]:
         """
         Search the Faiss index using the query and return results.
@@ -120,7 +94,7 @@ class SearchFaissIndex:
             search_query (dict): Search query.
 
         Returns:
-            list: List of search results.
+            list: List of indices.
         """
         index = self._load_index()
 
@@ -129,14 +103,30 @@ class SearchFaissIndex:
 
         _, indices = index.search(query_embedding, self.index_args["k_neighbors"])
 
-        return self._query_result(indices)
+        return indices
+
+    def _search_results(self, indices) -> list:
+        """
+        Search the Faiss index using the query and return results.
+
+        Args:
+            indices (list): Indices from faiss-index search.
+
+        Returns:
+            list: List of search results.
+        """
+        idxs = indices[0]
+        results = get_embeds_details(idxs, self.raw_data_file)
+
+        return results
 
     def process(self, search_query: dict) -> None:
         """
         Process the search on faiss index and handle exceptions.
         """
         try:
-            return self._query_index(search_query)
+            indices = self._query_index(search_query)
+            return self._search_results(indices)
         except Exception as e:
             logger.exception(f"An error occurred: {e}")
-            return None
+            raise e

@@ -112,7 +112,7 @@ class ProcessDataset:
 
         dir_path, ext = self.embed_file.values()
         file_path = get_file_path(
-            dir_path, ext, f"{dataset_type}_embedding_{file_count}"
+            dir_path, ext, True, f"{dataset_type}_embedding_{file_count}"
         )
 
         torch.save(all_embs, file_path)

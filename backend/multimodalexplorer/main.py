@@ -33,7 +33,7 @@ async def root():
     return {"message": "Welcome to MultiModalExplorer."}
 
 
-app.include_router(create_router(args))
+app.include_router(create_router())
 
 # Start the FastAPI server with uvicorn
 if __name__ == "__main__":

@@ -4,25 +4,56 @@
 # LICENSE file in the root directory of this source tree.
 
 
-from typing import Any, Dict
+import logging
 
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException
+from pydantic import ValidationError
 
-from multimodalexplorer.functions.fetch_embed import fetch_embed
+from multimodalexplorer.functions.fetch_embed import fetch_embeds, fetch_embeds_details
+from multimodalexplorer.types.route_types import (
+    EmbeddingsDetailsRequest,
+    EmbeddingsDetailsResponse,
+    EmbeddingsResponse,
+)
+
+# Set up logging
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
 
 
-def create_embeddings_router() -> APIRouter:
-    router = APIRouter()
+@router.get("/get_embeddings", response_model=EmbeddingsResponse)
+async def get_embeddings():
 
-    @router.get("/get_embeddings")
-    async def get_embeddings() -> Dict[str, Any]:
+    try:
+        embeddings = fetch_embeds()
+        return EmbeddingsResponse(data=embeddings)
 
-        try:
-            embeddings = fetch_embed()
+    except Exception as e:
+        if isinstance(e, ValidationError):
+            logger.error("Validation error on loading embeddings")
+        else:
+            logger.error(f"Failed to load embeddings: {str(e)}")
 
-            return JSONResponse(content={"data": embeddings}, status_code=200)
-        except Exception as e:
-            return {"error": f"Failed to load embeddings: {str(e)}"}
+        raise HTTPException(
+            status_code=500, detail=f"Failed to load embeddings: {str(e)}"
+        )
 
-    return router
+
+@router.post("/get_embeddings_details", response_model=EmbeddingsDetailsResponse)
+async def get_embeddings_details(embed_points: EmbeddingsDetailsRequest):
+
+    try:
+        embeddings_details = fetch_embeds_details(embed_points.points)
+        return EmbeddingsDetailsResponse(data=embeddings_details)
+
+    except Exception as e:
+        if isinstance(e, ValidationError):
+            logger.error("Validation error on loading embeddings details")
+        else:
+            logger.error(f"Failed to load embeddings details: {str(e)}")
+
+        raise HTTPException(
+            status_code=500, detail=f"Failed to load embeddings details: {str(e)}"
+        )
