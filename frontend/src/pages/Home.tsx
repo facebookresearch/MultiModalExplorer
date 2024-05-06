@@ -5,30 +5,15 @@
 
 import Loader from "@components/Loader";
 import RenderEmbeddings from "@components/RenderEmbeddings";
-import EmbeddingDetails from "@components/EmbeddingDetails";
 
-import {
-  getEmbeddingPointDetails,
-  getEmbeddingPoints,
-} from "@actions/api/embedding";
-import {
-  EmbeddingsDetailsResponseProps,
-  EmbeddingsResponseProps,
-} from "@type/embedding.types";
+import { getEmbeddingPoints } from "@actions/api/embedding";
+import { EmbeddingsResponseProps } from "@type/embedding.types";
 
 export default function Home(): JSX.Element {
   const { data: embeddings, isPending } =
     getEmbeddingPoints() as EmbeddingsResponseProps;
 
-  const {
-    data: embeddingDetails,
-    isPending: loadingEmbeddingDetails,
-    sendData,
-  } = getEmbeddingPointDetails() as EmbeddingsDetailsResponseProps;
-
-  const handleEmdeddingSelect = async (point: number[]) => {
-    await sendData(point);
-  };
+  const handleEmdeddingSelect = async () => {};
 
   const handleEmdeddingUnselect = () => {};
 
@@ -40,11 +25,6 @@ export default function Home(): JSX.Element {
             embeddings={embeddings}
             handleEmdeddingSelect={handleEmdeddingSelect}
             handleEmdeddingUnselect={handleEmdeddingUnselect}
-          />
-
-          <EmbeddingDetails
-            embeddingDetails={embeddingDetails}
-            loadingEmbeddingDetails={loadingEmbeddingDetails}
           />
         </>
       ) : (

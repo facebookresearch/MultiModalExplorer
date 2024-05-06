@@ -13,5 +13,5 @@ export type SearchResponseProps = {
     | null;
   setData: (e) => void;
   isPending: boolean;
-  sendData: (e) => void;
+  postData: (e) => void;
 };

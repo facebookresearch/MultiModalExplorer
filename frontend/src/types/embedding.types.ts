@@ -3,32 +3,36 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-interface Embeddings {
+interface EmbeddingsData {
   data: string;
   media_type: string;
   x: number;
   y: number;
   cluster: number;
   id: number;
+  index: number;
 }
 
+type EmbeddingsPoint = [number, number, number];
+
 export type EmbeddingsResponseProps = {
-  data: Array<Embeddings> | null;
+  data: Array<EmbeddingsPoint> | null;
   isPending: boolean;
 };
 
 export type EmbeddingsDetailsResponseProps = {
-  data: Embeddings | null;
+  data: Array<EmbeddingsData> | null;
   isPending: boolean;
-  sendData: (e) => void;
+  postData: (e) => void;
+};
+
+export type EmbeddingDetailsProps = {
+  embeddingDetails: Array<EmbeddingsData> | null;
+  loadingEmbeddingDetails: boolean;
 };
 
 export type RenderEmbeddingsProps = {
-  embeddings: Array<Embeddings> | null;
+  embeddings: Array<EmbeddingsPoint> | null;
   handleEmdeddingSelect?: (detail: number[]) => Promise<void>;
   handleEmdeddingUnselect?: () => void;
-};
-export type EmbeddingDetailsProps = {
-  embeddingDetails: Embeddings | null;
-  loadingEmbeddingDetails: boolean;
 };

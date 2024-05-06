@@ -5,19 +5,25 @@
 // LICENSE file in the root directory of this source tree.
 
 import React, { useEffect, useRef, useCallback, useState, memo } from "react";
+import { useSearchParams } from "react-router-dom";
 import createScatterplot from "regl-scatterplot";
-import { scaleLinear } from "d3-scale";
+import * as d3 from "d3";
 import Konva from "konva";
 import { Layer as KonvaLayer } from "konva/lib/Layer";
+import { useDebounce } from "react-use";
 
 import { useAppContext } from "@providers/ContextProvider";
 import { truncate } from "@utils";
-import { useSearchParams } from "react-router-dom";
 import { POINT_COLOR_LIST } from "@constants";
-import { RenderEmbeddingsProps } from "types/embedding.types";
+import {
+  EmbeddingsDetailsResponseProps,
+  RenderEmbeddingsProps,
+} from "types/embedding.types";
+import { getEmbeddingPointDetails } from "@actions/api/embedding";
 
-const MAX_POINT_LABEL = 15;
-const POINT_SIZE = 3;
+const MAX_ZOOM = 110;
+const POINTS_ZOOM_START = 90;
+const POINT_SIZE = 2;
 
 const transitionProp = {
   transition: true,
@@ -29,8 +35,9 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     // Get the handlers function from the app context
     const { setZoomHandlers } = useAppContext();
 
-    const [width, setWidth] = useState(1);
-    const [height, setHeight] = useState(1);
+    const [width, setWidth] = useState<number>(1);
+    const [height, setHeight] = useState<number>(1);
+    const [points, setPoints] = useState<Array<number>>();
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const stageRef = useRef<HTMLDivElement | null>(null);
@@ -38,6 +45,12 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     const scatterplotRef = useRef(null);
 
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const {
+      data: embeddingDetails,
+      // isPending: loadingEmbeddingDetails,
+      postData: fetchPointData,
+    } = getEmbeddingPointDetails() as EmbeddingsDetailsResponseProps;
 
     // Handle embedding selection
     const handleSelect = useCallback(
@@ -89,7 +102,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     // Draw data points on the canvas
     const handleDrawData = useCallback(
       (
-        pointData: Array<{ x: number; y: number; data: string; id: string }>
+        pointData: Array<{ x: number; y: number; metadata: string; id: string }>
       ) => {
         const layer = layerRef.current;
 
@@ -101,7 +114,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
           const text = new Konva.Text({
             x: item.x,
             y: item.y,
-            text: item.data,
+            text: item.metadata,
             fontSize: 14,
             fill: "white",
             width: 250,
@@ -134,62 +147,68 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     const handleShowData = useCallback(
       (
         pointsInView: number[],
-        xScale: scaleLinear<number, number>,
-        yScale: scaleLinear<number, number>
+        xScale: d3.ScaleLinear<number, number>,
+        yScale: d3.ScaleLinear<number, number>
       ) => {
         const dataPoints = pointsInView.reduce((acc, point) => {
-          const { x, y, data } = embeddings![point];
-          acc.push({
-            id: point.toString(),
-            point,
-            x: xScale(x),
-            y: yScale(y),
-            data: truncate(data, 100),
-          });
+          const [x, y] = embeddings![point];
+          const data = embeddingDetails?.find((item) => item.index === point);
+
+          const metadata = data?.data;
+
+          if (data) {
+            acc.push({
+              id: point.toString(),
+              x: xScale(x),
+              y: yScale(y),
+              metadata: truncate(metadata, 100),
+            });
+          }
           return acc;
-        }, [] as Array<{ id: string; point: number; x: number; y: number; data: string }>);
+        }, [] as Array<{ id: string; x: number; y: number; metadata: string }>);
 
         handleDrawData(dataPoints);
       },
-      [embeddings, handleDrawData]
+      [embeddings, handleDrawData, embeddingDetails]
     );
 
-    // Handle the view event from the scatterplot
+    // Handle the set query parameters
+    const handleSetQueryParams = (scatterplot) => {
+      const getCamera = scatterplot.get("camera");
+
+      let timer = undefined as ReturnType<typeof setTimeout> | undefined;
+
+      if (timer) {
+        clearTimeout(timer);
+      }
+
+      timer = setTimeout(() => {
+        const setQueryParameters = new URLSearchParams();
+        setQueryParameters.set(
+          "at",
+          `${getCamera.target[0]},${getCamera.target[1]},${getCamera.distance[0]}`
+        );
+        setSearchParams(setQueryParameters, { replace: true });
+      }, 200);
+    };
+
+    // Handle the view event func from the scatterplot
     const handleView = useCallback(
-      (xScale, yScale) => {
-        const scatterplot = scatterplotRef.current!;
-
-        if (!scatterplot) return;
-
-        // @ts-expect-error "Type not supported by scatterplot"
+      (xScale, yScale, scatterplot) => {
+        const pointsInView = scatterplot.get("pointsInView");
         const getCamera = scatterplot.get("camera");
 
-        let timer = undefined as ReturnType<typeof setTimeout> | undefined;
+        getCamera.setScaleBounds([0, MAX_ZOOM]);
 
-        if (timer) {
-          clearTimeout(timer);
-        }
+        const zoom = 1 / getCamera.distance[0];
 
-        timer = setTimeout(() => {
-          const setQueryParameters = new URLSearchParams();
-          setQueryParameters.set(
-            "at",
-            `${getCamera.target[0]},${getCamera.target[1]},${getCamera.distance[0]}`
-          );
-          setSearchParams(setQueryParameters, { replace: true });
-        }, 1000);
-
-        // @ts-expect-error "Type not supported by scatterplot"
-        const pointsInView = scatterplot.get("pointsInView");
-
-        if (pointsInView.length <= MAX_POINT_LABEL) {
+        if (zoom > POINTS_ZOOM_START) {
+          setPoints(pointsInView);
           handleShowData(pointsInView, xScale, yScale);
-          // @ts-expect-error "Type not supported by scatterplot"
-          scatterplot.set({ opacity: [0] });
+          // scatterplot.set({ opacity: [0] });
         } else {
           handleCleanData();
-          // @ts-expect-error "Type not supported by scatterplot"
-          scatterplot.set({ opacity: [1] });
+          // scatterplot.set({ opacity: [1] });
         }
       },
       [handleCleanData, handleShowData]
@@ -203,16 +222,38 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
       setHeight(wrapper!.height);
     }, [canvasRef.current]);
 
+    // Create debounce timer func to fetch point data from API
+    useDebounce(
+      () => {
+        if (points) fetchPointData({ points: points });
+      },
+      200,
+      [points]
+    );
+
+    // Set up view event handler and subscribe to it
+    useEffect(() => {
+      const scatterplot = scatterplotRef.current!;
+      if (!scatterplot) return;
+
+      // @ts-expect-error "Type not supported by scatterplot"
+      scatterplot.subscribe("view", ({ xScale, yScale }) => {
+        handleSetQueryParams(scatterplot);
+        handleView(xScale, yScale, scatterplot);
+      });
+
+      return () => {};
+    }, [scatterplotRef.current, embeddingDetails]);
+
     // Initialize the scatterplot and set up event handlers
     useEffect(() => {
       const stageContainer = stageRef.current;
 
-      if (!canvasRef.current || !stageContainer || embeddings?.length === 0)
-        return;
+      if (!canvasRef.current || !stageContainer || !embeddings) return;
 
       const [xScale, yScale] = [
-        scaleLinear().domain([-1, 1]).range([0, width]),
-        scaleLinear().domain([-1, 1]).range([0, height]),
+        d3.scaleLinear().domain([-1, 1]).range([0, width]),
+        d3.scaleLinear().domain([-1, 1]).range([0, height]),
       ];
 
       const camara_pos = searchParams.get("at");
@@ -237,11 +278,7 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
 
       stage.add(layer);
 
-      scatterplot.draw(
-        embeddings?.length
-          ? embeddings?.map((embed) => [embed.x, embed.y, embed.cluster])
-          : []
-      );
+      scatterplot.draw(embeddings);
 
       scatterplot.set({
         deselectOnDblClick: true,
@@ -259,10 +296,6 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
 
       scatterplot.subscribe("select", handleSelect);
       scatterplot.subscribe("deselect", handleDeselect);
-
-      scatterplot.subscribe("view", ({ xScale, yScale }) =>
-        handleView(xScale, yScale)
-      );
 
       // @ts-expect-error "Type not supported by scatterplot"
       scatterplotRef.current = scatterplot;
@@ -283,13 +316,15 @@ const RenderEmbeddings: React.FC<RenderEmbeddingsProps> = memo(
     }, [scatterplotRef.current]);
 
     return (
-      <div className="absolute w-full h-[calc(100%-80px)] top-20 bottom-0">
-        <canvas ref={canvasRef} className="w-full h-full" />
-        <div
-          ref={stageRef}
-          className="absolute top-0 bottom-0 left-0 right-0 w-full h-full pointer-events-none"
-        />
-      </div>
+      <>
+        <div className="absolute w-full h-[calc(100%-80px)] top-20 bottom-0">
+          <canvas ref={canvasRef} className="w-full h-full" />
+          <div
+            ref={stageRef}
+            className="absolute top-0 bottom-0 left-0 right-0 w-full h-full pointer-events-none"
+          />
+        </div>
+      </>
     );
   }
 );

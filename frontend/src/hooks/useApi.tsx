@@ -69,7 +69,7 @@ export const useApiPostRequest = <T,>(path: string) => {
 
   const { setError } = useAppContext();
 
-  const sendData = async (params?: any) => {
+  const postData = async (params?: any) => {
     try {
       setIsPending(true);
 
@@ -87,6 +87,7 @@ export const useApiPostRequest = <T,>(path: string) => {
         },
       });
       setData(result?.data?.data);
+      return result?.data?.data;
     } catch (error) {
       const err = errorHandler(error as AxiosError);
 
@@ -99,5 +100,5 @@ export const useApiPostRequest = <T,>(path: string) => {
     }
   };
 
-  return { data, setData, isPending, setIsPending, sendData };
+  return { data, setData, isPending, setIsPending, postData };
 };

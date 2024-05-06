@@ -21,7 +21,7 @@ const Searchbar: React.FC = () => {
     data: searchQueryList,
     setData: setSearchQueryList,
     isPending: loadingSearchQuery,
-    sendData,
+    postData,
   } = getSearchQueryDetails() as SearchResponseProps;
 
   const [searchInput, setSearchInput] = useState<string>("");
@@ -37,7 +37,7 @@ const Searchbar: React.FC = () => {
   const handleSearchQuery = async () => {
     setShowDropdown(true);
     if (searchInput.length > 2) {
-      await sendData({
+      await postData({
         search_data: searchInput,
         search_type: "text",
       });
