@@ -19,10 +19,12 @@ DatasetType = Enum("DatasetType", VALID_DATASET_TYPES)
 
 
 def get_file_path(
-    dir_name: str, extension: str, is_write: bool = True, file_name: Optional[str] = None
+    dir_name: str,
+    extension: str,
+    is_write: bool = True,
+    file_name: Optional[str] = None,
 ) -> Path:
     folder_path = Path(dir_name).absolute()
-
 
     if file_name is None:
         file_name = folder_path.name
