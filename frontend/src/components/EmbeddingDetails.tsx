@@ -4,33 +4,28 @@
 // LICENSE file in the root directory of this source tree.
 
 import Loader from "./Loader";
-interface EmbeddingDetailsProps {
-  embeddingPoint?: number[] | null;
-  embeddingDetails?: { id: number } | null;
-  loadingEmbeddingDetails: boolean;
-}
+import { EmbeddingDetailsProps } from "@type/embedding.types";
 
 const EmbeddingDetails: React.FC<EmbeddingDetailsProps> = ({
-  embeddingPoint,
   embeddingDetails,
   loadingEmbeddingDetails,
 }) => {
   return (
     <aside className="fixed top-16 right-5 z-[999]">
-      {embeddingPoint && (
+      {!loadingEmbeddingDetails ? (
         <div className="card lg:w-[320px] max-w-[320px] bg-base-100 border-2 border-white rounded">
-          {!loadingEmbeddingDetails && embeddingDetails ? (
+          {embeddingDetails && (
             <div className="flex flex-col justify-between min-h-56">
-              <div className="card-body border-b border-white">
-                <div className="h-20 p-6 rounded flex justify-center items-center">
+              <div className="border-b border-white card-body">
+                <div className="flex items-center justify-center h-20 p-6 rounded">
                   <div className="font-bold">Data Preview</div>
                 </div>
               </div>
               <div className="p-2 mt-0">
-                <div className="flex flex-row justify-between items-center mb-2 p-2">
+                <div className="flex flex-row items-center justify-between p-2 mb-2">
                   <div className="px-1 text-2xs lg:text-sm">
                     <h3 className="font-bold text-gray/50">Embedding ID</h3>
-                    <h2 className="text-white font-bold">
+                    <h2 className="font-bold text-white">
                       {embeddingDetails?.id}
                     </h2>
                   </div>
@@ -40,11 +35,11 @@ const EmbeddingDetails: React.FC<EmbeddingDetailsProps> = ({
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="w-full h-56 flex justify-center items-center">
-              <Loader />
-            </div>
           )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center w-full h-56">
+          <Loader />
         </div>
       )}
     </aside>

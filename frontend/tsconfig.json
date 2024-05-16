@@ -23,7 +23,22 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+
+    /* BaseUrl */
+    "baseUrl": "src",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
+      "@providers/*": ["providers/*"],
+      "@navigation/*": ["navigation/*"],
+      "@actions/*": ["actions/*"],
+      "@assets/*": ["assets/*"],
+      "@utils": ["utils.ts"],
+      "@constants": ["constants.ts"],
+      "@hooks/*": ["hooks/*"],
+      "@type/*": ["types/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

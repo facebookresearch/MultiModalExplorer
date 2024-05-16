@@ -5,11 +5,17 @@
 
 import { createBrowserRouter } from "react-router-dom";
 
-import Home from "../pages/Home";
+import Home from "@pages/Home";
+import PageLayout from "layouts/PageLayout";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    children: [
+      {
+        element: <PageLayout />,
+        children: [{ index: true, element: <Home /> }],
+      },
+    ],
   },
 ]);
