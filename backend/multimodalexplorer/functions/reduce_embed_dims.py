@@ -3,19 +3,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
+import hdbscan
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from umap import UMAP
 
 from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
 from multimodalexplorer.utils.utils import (
     concat_embed_from_dir,
-    load_config,
     parse_arguments,
+    select_params,
 )
 
 # Set up logging
@@ -29,6 +30,7 @@ class ReduceEmbedDims:
         embed_file: DataFileType,
         umap_file: DataFileType,
         umap_args: Dict[str, Any],
+        cluster_args: Dict[str, Any],
     ):
         """
         Initialize the ReduceEmbedDims class.
@@ -41,44 +43,77 @@ class ReduceEmbedDims:
         self.embed_file = embed_file
         self.umap_file = umap_file
         self.umap_args = umap_args
+        self.cluster_args = cluster_args
 
-    def load_embeddings(self) -> Optional[np.ndarray]:
+    def _cluster_embed(self, umap_embeddings, normalized_embeddings):
         """
-        Load UMAP embeddings from the stored file.
+        Cluster embeddings using HDBSCAN.
+
+        Args:
+            embeddings (numpy.ndarray): Input embeddings.
 
         Returns:
-            np.ndarray or None: The loaded UMAP embeddings or None if an error occurred.
+            numpy.ndarray: Embeddings with additional cluster labels.
         """
-        dir_path, ext = self.umap_file.values()
-        file_path = get_file_path(dir_path, ext)
 
-        try:
-            with open(file_path, "rb") as file:
-                embeddings = np.load(file)
-            logger.info(f"Loaded UMAP embeddings with shape: {embeddings.shape}")
-            return embeddings
-        except FileNotFoundError:
-            logger.error(f"UMAP embeddings file not found at: {file_path}")
-            return None
-        except Exception as e:
-            logger.exception(f"An error occurred while loading UMAP embeddings: {e}")
-            return None
+        # Perform clustering
+
+        hdbscan_v = hdbscan.HDBSCAN(**self.cluster_args)
+        clusters = hdbscan_v.fit_predict(umap_embeddings)
+
+        # Get the maximum cluster label
+        max_cluster_label = clusters.max()
+
+        # Reassign noise points (-1) to the next available number
+        noise_label = max_cluster_label + 1
+        clusters[clusters == -1] = noise_label
+
+        # Append cluster labels to embeddings
+        embedding_with_clusters = np.column_stack((normalized_embeddings, clusters))
+
+        logger.info(
+            f"Created clusters for embeddings with {max_cluster_label} cluster max."
+        )
+
+        return embedding_with_clusters
+
+    def _normalize_embed(self, umap_embeddings):
+        """
+        Normalize embeddings and cluster them.
+
+        Args:
+            umap_embeddings (numpy.ndarray): UMAP embeddings.
+
+        Returns:
+            numpy.ndarray: Normalized embeddings with clusters.
+        """
+        # Normalize embeddings to [-1, 1] range
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+        normalized_embeddings = scaler.fit_transform(umap_embeddings)
+
+        # Cluster normalized embeddings
+        return self._cluster_embed(umap_embeddings, normalized_embeddings)
 
     def _reduce_dims(self) -> None:
         """
         Reduce the dimensions of embeddings using UMAP.
         """
         embeddings = concat_embed_from_dir(self.embed_file["dir"])
+
         umap_model = UMAP(**self.umap_args)
         umap_embeddings = umap_model.fit_transform(embeddings)
+
+        normailize_umap_embedding = self._normalize_embed(umap_embeddings)
 
         dir_path, ext = self.umap_file.values()
         file_path = get_file_path(dir_path, ext)
 
         with open(file_path, "wb") as file:
-            np.save(file, umap_embeddings)
+            np.save(file, normailize_umap_embedding)
 
-        logger.info(f"Created UMAP embeddings for {len(umap_embeddings)} samples.")
+        logger.info(
+            f"Created UMAP embeddings for {len(normailize_umap_embedding)} samples."
+        )
 
     def process(self) -> None:
         """
@@ -88,12 +123,13 @@ class ReduceEmbedDims:
             self._reduce_dims()
         except Exception as e:
             logger.exception(f"An error occurred during dimension reduction: {e}")
+            return None
 
 
 if __name__ == "__main__":
-    p_list = ["embed_file", "umap_file", "umap_args"]
-    args = parse_arguments(p_list)
-    params = load_config(args.config, p_list)
+    p_list = ["embed_file", "umap_file", "umap_args", "cluster_args"]
+    args = parse_arguments()
+    params = select_params(args, p_list)
 
     logger.info("Arguments: %s", params)
 

@@ -7,15 +7,20 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
+import pyarrow as pa
+import pyarrow.csv as pa_csv
 import torch
 from sonar.inference_pipelines.speech import SpeechToEmbeddingModelPipeline
 from sonar.inference_pipelines.text import TextToEmbeddingModelPipeline
 
-from multimodalexplorer.utils.helpers import DEVICE, VALID_DATASET_TYPES
+from multimodalexplorer.types.data_types import DataFileType, EmbeddingDataType
+from multimodalexplorer.utils.helpers import DEVICE, VALID_DATASET_TYPES, get_file_path
 
 LOADED_MODELS: Dict[str, Any] = {}
+
+LOADED_DATA: pa.Table = None
 
 
 def load_model(dataset_type: str) -> Any:
@@ -56,28 +61,45 @@ def load_model(dataset_type: str) -> Any:
     return model
 
 
-def parse_arguments(key_list: List[str]) -> argparse.Namespace:
+def load_raw_data(raw_data_file) -> pa.Table:
+    global LOADED_DATA
+    if LOADED_DATA is None:
+        dir_path, ext = raw_data_file.values()
+        file_path = get_file_path(dir_path, ext, False)
+
+        LOADED_DATA = pa_csv.read_csv(
+            file_path, parse_options=pa.csv.ParseOptions(delimiter="\t")
+        )
+    return LOADED_DATA
+
+
+def select_params(
+    config: Dict[str, Any], key_list: List[str]
+) -> List[Union[str, int, Dict]]:
+    picked_config = {key: config[key] for key in key_list if key in config}
+
+    params = list(picked_config.values())
+
+    return params
+
+
+def parse_arguments() -> Dict[str, Union[str, int, Dict]]:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--config",
         type=str,
-        help=f"Path to the configuration file. The configuration file should be a JSON file containing settings for the script. Specific settings for configuration includes {tuple(key_list)}. Default value is 'config.json'.",
+        help=f"Path to the configuration file. The configuration file should be a JSON file containing settings for the script. Default value is 'config.json'.",
         default="config.json",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
 
-
-def load_config(config_file: str, key_list: List[str]) -> List[Union[str, int, Dict]]:
-    config_file_path = Path(config_file).absolute()
+    config_file_path = Path(args.config).absolute()
     with open(config_file_path, "r") as f:
         config = json.load(f)
 
-    picked_config = {key: config[key] for key in key_list if key in config}
-
-    params = list(picked_config.values())
-    return params
+    return config
 
 
 def concat_embed_from_dir(dirname: str) -> torch.Tensor:
@@ -94,3 +116,22 @@ def concat_embed_from_dir(dirname: str) -> torch.Tensor:
             embeddings_list.append(embeddings)
 
     return torch.cat(embeddings_list, dim=0)
+
+
+def get_embeds_details(
+    list: List, raw_data_file: DataFileType
+) -> Optional[List[EmbeddingDataType]]:
+
+    data_table = load_raw_data(raw_data_file)
+    results = []
+
+    for idx in list:
+        row = data_table.slice(idx, 1).to_pydict()
+        obj = {
+            "index": idx,
+            "data": row["data"][0],
+            "media_type": row["media_type"][0],
+        }
+        results.append(obj)
+
+    return results

@@ -1,6 +1,11 @@
 {
   "datasets": [
     {
+      "type": "audio",
+      "name": "MLCommons/peoples_speech",
+      "source_lang": "eng_Latn"
+    },
+    {
       "type": "text",
       "name": "embedding-data/sentence-compression",
       "source_lang": "eng_Latn"
@@ -12,9 +17,10 @@
   "umap_file": { "dir": "artifact/umap", "ext": "npy" },
   "index_file": { "dir": "artifact/index", "ext": "bin" },
 
-  "batch_size": 50,
-  "chunk_size": 100,
-  "train_data_size": 300,
+  "batch_size": 200,
+  "chunk_size": 1000,
+  "train_data_size": 15000,
+  "dataset_sample_size": 20000,
 
   "index_args": {
     "k_neighbors": 5
@@ -22,7 +28,16 @@
 
   "umap_args": {
     "n_components": 2,
-    "n_neighbors": 5,
-    "min_dist": 0.6
-  }
+    "n_neighbors": 15,
+    "min_dist": 0.5,
+    "metric": "cosine"
+  },
+
+  "cluster_args": {
+    "min_samples": 10,
+    "min_cluster_size": 500
+  },
+
+  "host": "127.0.0.1",
+  "port": "8000"
 }

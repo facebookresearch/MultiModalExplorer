@@ -19,7 +19,10 @@ DatasetType = Enum("DatasetType", VALID_DATASET_TYPES)
 
 
 def get_file_path(
-    dir_name: str, extension: str, file_name: Optional[str] = None
+    dir_name: str,
+    extension: str,
+    is_write: bool = True,
+    file_name: Optional[str] = None,
 ) -> Path:
     folder_path = Path(dir_name).absolute()
 
@@ -28,5 +31,14 @@ def get_file_path(
 
     file_name_with_extension = f"{file_name}.{extension}"
 
-    folder_path.mkdir(parents=True, exist_ok=True)
-    return folder_path / file_name_with_extension
+    file_path = folder_path / file_name_with_extension
+
+    # Disallow from creating parent folders/files if it is not write access
+    if is_write == True:
+        folder_path.mkdir(parents=True, exist_ok=True)
+    else:
+        # raise FileNotFoundError error if is_write is False and file_path does not exist
+        if not file_path.exists():
+            raise FileNotFoundError(f"File Path '{file_path}' not found.")
+
+    return file_path

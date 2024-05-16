@@ -14,8 +14,8 @@ from multimodalexplorer.types.data_types import DataFileType
 from multimodalexplorer.utils.helpers import get_file_path
 from multimodalexplorer.utils.utils import (
     concat_embed_from_dir,
-    load_config,
     parse_arguments,
+    select_params,
 )
 
 # Set up logging
@@ -105,8 +105,8 @@ class CreateFaissIndex:
 
 if __name__ == "__main__":
     p_list = ["embed_file", "index_file", "train_data_size"]
-    args = parse_arguments(p_list)
-    params = load_config(args.config, p_list)
+    args = parse_arguments()
+    params = select_params(args, p_list)
 
     logger.info("Arguments: %s", params)
 

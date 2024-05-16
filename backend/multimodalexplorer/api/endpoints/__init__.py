@@ -2,10 +2,15 @@
 
 from fastapi import APIRouter
 
-from . import embeddings
+from . import embeddings, search
 
 
 def create_router():
     router = APIRouter()
-    router.include_router(embeddings.router, prefix="/api", tags=["embeddings"])
+
+    router.include_router(
+        embeddings.router, prefix="/api/embedding", tags=["embedding"]
+    )
+    router.include_router(search.router, prefix="/api/search", tags=["search"])
+
     return router

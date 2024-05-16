@@ -16,3 +16,9 @@ class DataSetType(TypedDict):
     type: str
     name: str
     source_lang: str
+
+
+class EmbeddingDataType(TypedDict):
+    index: int
+    media_type: str
+    data: str
