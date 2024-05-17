@@ -1,0 +1,25 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# version: '3.7'
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app  # Mount backend directory into the container
+
+  ui:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.ui
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app  # Mount frontend directory into the container

@@ -1,0 +1,31 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Use the official Node.js 20 image
+FROM node:20-alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the dependencies file to the working directory
+COPY ./package.json ./pnpm-lock.yaml /app/
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install all dependencies
+RUN pnpm install
+
+# Copy the rest of the application
+COPY ./ /app/
+
+# # Build the TypeScript code
+RUN pnpm run build
+
+# Expose the port the app runs on
+EXPOSE 5173
+
+# Run the frontend
+CMD ["pnpm", "dev", "--host"]
